@@ -1,0 +1,6 @@
+.local
+c/build
+c/.local
+
+*.sublime-project
+*.sublime-workspace
