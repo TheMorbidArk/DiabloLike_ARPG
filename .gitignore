@@ -4,3 +4,5 @@ c/.local
 
 *.sublime-project
 *.sublime-workspace
+
+c/tmp
