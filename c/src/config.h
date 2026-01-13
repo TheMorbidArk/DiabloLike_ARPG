@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define MAP_SIZE 32
+#define MAP_SIZE 64
 #define TILE_SIZE 8
 #define ISO_W 16
 #define ISO_H 8

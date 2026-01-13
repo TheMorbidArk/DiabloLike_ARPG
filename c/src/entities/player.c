@@ -4,7 +4,7 @@
 #include "../systems/map.h"
 #include <math.h>
 
-Entity player = {{16.0f, 16.0f}, 0.0f, 1};
+Entity player = {{32.0f, 32.0f}, 0.0f, 1};
 
 void player_update() {
     Vec2 input = {0, 0};

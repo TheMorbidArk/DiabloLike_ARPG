@@ -17,9 +17,6 @@ set(STACK_SIZE 8192)
 add_compile_options(
     -W -Wall -Wextra -Wno-unused -Wconversion -Wsign-conversion
     -fno-exceptions
-    -mno-bulk-memory 
-    -mno-nontrapping-fptoint 
-    -mno-sign-ext
 )
 
 # Debug/Release 差异化
