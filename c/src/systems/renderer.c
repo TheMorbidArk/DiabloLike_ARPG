@@ -3,8 +3,69 @@
 #include "../config.h"
 #include "../utils/math_iso.h"
 #include "../systems/map.h"
+#include <stdlib.h>
 
 static uint8_t trans_map[] = {0};
+
+void render_minimap(Entity* player) {
+    // 1. 小地图 UI 配置 (64x32)
+    const int MM_W = 64;
+    const int MM_H = 32;
+    const int offset_x = WIDTH - MM_W - 8; // 稍微多留一点边距
+    const int offset_y = 8;                
+
+    int cx = offset_x + MM_W / 2;
+    int cy = offset_y + MM_H / 2;
+
+    // 2. 渲染参数
+    const int RADIUS = 18; 
+    int px = (int)player->pos.x;
+    int py = (int)player->pos.y;
+
+    // 3. 投影循环（内容层）
+    for (int dy = -RADIUS; dy <= RADIUS; dy++) {
+        for (int dx = -RADIUS; dx <= RADIUS; dx++) {
+            int wx = px + dx;
+            int wy = py + dy;
+
+            if (wx >= 0 && wx < 96 && wy >= 0 && wy < 96) {
+                uint8_t tid = (uint8_t)MAP[wy * 240 + wx];
+                if (tid == 0) continue;
+
+                int mm_rel_x = (dx - dy);
+                int mm_rel_y = (dx + dy) / 2;
+
+                // --- 裁剪逻辑优化 ---
+                // 稍微收紧裁剪范围（MM_W - 4），确保 2x2 的色块不会溢出到边框外
+                if (abs(mm_rel_x) + abs(dx + dy) >= MM_W - 4) continue;
+
+                int final_sx = cx + mm_rel_x;
+                int final_sy = cy + mm_rel_y;
+
+                uint8_t col = (tid == ID_WALL) ? (uint8_t)1 : (uint8_t)3; 
+                rect(final_sx, final_sy, 2, 2, (int8_t)col);
+            }
+        }
+    }
+
+    // 4. 【关键修复】：扩大边框顶点坐标
+    // 向外扩 2 像素水平，1 像素垂直，形成“包裹”感
+    float b_top_y = (float)offset_y - 2.0f;
+    float b_bottom_y = (float)(offset_y + MM_H) + 2.0f;
+    float b_left_x = (float)offset_x - 4.0f;
+    float b_right_x = (float)(offset_x + MM_W) + 6.0f;
+    float mid_x = (float)cx;
+    float mid_y = (float)cy;
+
+    // 使用颜色 12 (或 15 白色) 绘制包裹线
+    line(mid_x, b_top_y, b_right_x, mid_y, (int8_t)12);     // 右上
+    line(b_right_x, mid_y, mid_x, b_bottom_y, (int8_t)12); // 右下
+    line(mid_x, b_bottom_y, b_left_x, mid_y, (int8_t)12);  // 左下
+    line(b_left_x, mid_y, mid_x, b_top_y, (int8_t)12);     // 左上
+
+    // 5. 绘制玩家点 (最顶层)
+    rect(cx - 1, cy - 1, 2, 2, (int8_t)15);
+}
 
 void render_scene(Entity* player) {
     cls(0); 
@@ -49,4 +110,5 @@ void render_scene(Entity* player) {
             }
         }
     }
+    render_minimap(player);
 }

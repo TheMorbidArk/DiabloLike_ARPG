@@ -3,6 +3,7 @@
 #include "../config.h"
 #include "../systems/map.h"
 #include <math.h>
+#include <stdlib.h>
 
 Entity player = {{32.0f, 32.0f}, 0.0f, 1};
 
@@ -10,6 +11,11 @@ void player_update() {
     Vec2 input = {0, 0};
     if (btn(0)) input.y -= 1; if (btn(1)) input.y += 1;
     if (btn(2)) input.x -= 1; if (btn(3)) input.x += 1;
+
+    // 调试：按 X 键 (btn 6) 重新生成地图
+    if (btnp(6,60,6)) {
+        map_generate((unsigned int)rand());
+    }
 
     Vec2 move_vec = {0, 0};
     float speed = 0.15f;

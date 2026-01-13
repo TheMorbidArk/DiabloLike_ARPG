@@ -5,8 +5,6 @@
 #include "systems/renderer.h"
 #include "entities/player.h"
 
-#include <stdlib.h>
-
 WASM_EXPORT("BOOT")
 void BOOT() {
     assets_init();
@@ -22,9 +20,4 @@ void TIC() {
     player_update();
     camera_update(&player);
     render_scene(&player);
-
-    // 调试：按 A 键 (btn 4) 重新生成地图
-    if (btn(4)) {
-        map_generate((unsigned int)rand());
-    }
 }
