@@ -52,4 +52,17 @@ void assets_init() {
         int dx = x - 8, dy = y - 8;
         if (dx*dx + dy*dy < 20) set_composite_pixel(ID_PLAYER, x, y-4, COL_PLAYER);
     }
+    
+    // 生成红色球
+    for(int y=0; y<16; y++) for(int x=0; x<16; x++) {
+        set_composite_pixel(ID_RED_BALL, x, y, COLOR_BLACK);
+        int dx = x - 8, dy = y - 8;
+        if (dx*dx + dy*dy < 25) {
+            // 渐变效果：边缘较暗，中心较亮
+            int dist = dx*dx + dy*dy;
+            if (dist < 6) set_composite_pixel(ID_RED_BALL, x, y, COLOR_WHITE); // 高光
+            else if (dist < 16) set_composite_pixel(ID_RED_BALL, x, y, COL_RED_BALL); // 主色
+            else set_composite_pixel(ID_RED_BALL, x, y, COLOR_DARK_GREY); // 阴影
+        }
+    }
 }

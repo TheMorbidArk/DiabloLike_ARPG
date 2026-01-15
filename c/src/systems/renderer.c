@@ -3,6 +3,8 @@
 #include "../config.h"
 #include "../utils/math_iso.h"
 #include "../systems/map.h"
+#include "../entities_system/game_entities.h"
+#include "../systems/scene.h"
 #include <stdlib.h>
 
 static uint8_t trans_map[] = {0};
@@ -68,6 +70,11 @@ void render_minimap(Entity* player) {
 }
 
 void render_scene(Entity* player) {
+    // 只在探索场景下渲染
+    if (scene_get_current() != SCENE_EXPLORATION) {
+        return;
+    }
+    
     cls(COLOR_BLACK); 
     uint8_t trans = 0;
     
@@ -127,6 +134,22 @@ void render_scene(Entity* player) {
                 // 玩家也需要向上抬起，否则会埋进土里
                 // 假设玩家精灵高16像素，抬起 6-8 像素比较合适
                 spr(ID_PLAYER, psx, psy - 8, &trans, 1, 1, 0, 0, 2, 2);
+            }
+
+            // --- 渲染游戏实体 ---
+            GameEntity* entities = game_entities_get_array();
+            int entity_count = game_entities_get_count();
+            
+            for (int e = 0; e < entity_count; e++) {
+                int entity_x = (int)entities[e].x;
+                int entity_y = (int)entities[e].y;
+                
+                if (entity_x == x && entity_y == y && entities[e].type != ENTITY_TYPE_PLAYER) {
+                    int esx, esy;
+                    world_to_screen(entities[e].x, entities[e].y, 0.0f, &esx, &esy);
+                    // 实体需要向上抬起，与玩家保持一致的高度
+                    spr(entities[e].tile_id, esx, esy - 8, &trans, 1, 1, 0, 0, 2, 2);
+                }
             }
         }
     }

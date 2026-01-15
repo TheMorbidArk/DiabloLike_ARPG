@@ -1,6 +1,7 @@
 #include "map.h"
 #include "../config.h"
 #include "../tic80.h"
+#include "../entities_system/game_entities.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -60,13 +61,7 @@ void map_generate(unsigned int seed, bool generate_walls) {
         }
     }
 
-    // --- 第三步：BFS 确保全连通走廊 ---
-    int start_x = MAP_SIZE / 2;
-    int start_y = MAP_SIZE / 2;
-    
-    // 强制起点和周围为草地
-    for(int i=-1; i<=1; i++) for(int j=-1; j<=1; j++) mset(start_x+i, start_y+j, ID_GRASS);
-
+    // --- 第三步：BFS 确保全连通走廊，同时保护所有实体位置 ---
     // 访问标记位图
     memset(temp_map, 0, sizeof(temp_map));
     
@@ -75,10 +70,34 @@ void map_generate(unsigned int seed, bool generate_walls) {
     static int qy[MAP_SIZE * MAP_SIZE];
     int head = 0, tail = 0;
 
-    qx[tail] = start_x;
-    qy[tail] = start_y;
-    tail++;
-    temp_map[start_y * MAP_SIZE + start_x] = 1;
+    // 获取所有实体
+    GameEntity* entities = game_entities_get_array();
+    int entity_count = game_entities_get_count();
+
+    // 为所有实体的3x3区域添加到BFS起点，确保连通性
+    for (int e = 0; e < entity_count; e++) {
+        int entity_x = (int)entities[e].x;
+        int entity_y = (int)entities[e].y;
+        
+        // 强制实体和周围为草地
+        for(int dy = -1; dy <= 1; dy++) {
+            for(int dx = -1; dx <= 1; dx++) {
+                int tx = entity_x + dx;
+                int ty = entity_y + dy;
+                if (tx >= 0 && tx < MAP_SIZE && ty >= 0 && ty < MAP_SIZE) {
+                    mset(tx, ty, ID_GRASS);
+                    
+                    // 如果这个格子还未访问，添加到BFS队列
+                    if (!temp_map[ty * MAP_SIZE + tx]) {
+                        qx[tail] = tx;
+                        qy[tail] = ty;
+                        tail++;
+                        temp_map[ty * MAP_SIZE + tx] = 1;
+                    }
+                }
+            }
+        }
+    }
 
     while (head < tail) {
         int cx = qx[head];
@@ -111,6 +130,10 @@ void map_generate(unsigned int seed, bool generate_walls) {
             }
         }
     }
+
+    // --- 第五步：确保实体区域与主连通区域保持连接 ---
+    // 注意：在第三步中已经将所有实体的3x3区域都加入BFS，
+    // 所以它们现在应该都是连通的。这里不需要额外操作。
 }
 bool map_is_inside(int x, int y) {
     return x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE;

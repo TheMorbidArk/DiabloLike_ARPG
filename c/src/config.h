@@ -11,6 +11,24 @@
 #define ID_WALL      18
 #define ID_OUTSIDE   20
 #define ID_PLAYER    256
+#define ID_RED_BALL  258
+
+// Game Scene States
+typedef enum {
+    SCENE_EXPLORATION,
+    SCENE_BATTLE,
+    SCENE_DIALOG,
+    SCENE_MENU
+} GameScene;
+
+// Battle States
+typedef enum {
+    BATTLE_PLAYER_TURN,
+    BATTLE_ENEMY_TURN,
+    BATTLE_MENU_SELECT,
+    BATTLE_ANIMATION,
+    BATTLE_RESULT
+} BattleState;
 
 // TIC-80 Color Palette
 typedef enum {
@@ -42,5 +60,15 @@ typedef enum {
 #define COL_OUT_TOP     COLOR_RED
 #define COL_OUT_SIDE    COLOR_PURPLE
 #define COL_PLAYER      COLOR_GREY
+#define COL_RED_BALL    COLOR_RED
+
+// Battle Configuration
+#define BATTLE_ENEMY_HP  50
+#define BATTLE_ENEMY_ATK 8
+#define BATTLE_PLAYER_ATK 10
+#define BATTLE_MENU_X    10
+#define BATTLE_MENU_Y    100
+#define BATTLE_MENU_ITEM_H 12
+
 
 #endif

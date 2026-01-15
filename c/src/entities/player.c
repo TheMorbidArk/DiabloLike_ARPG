@@ -2,11 +2,12 @@
 #include "../tic80.h"
 #include "../config.h"
 #include "../systems/map.h"
+#include "../entities_system/game_entities.h"
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-Entity player = {{32.0f, 32.0f}, 0.0f, 1};
+Entity player = {{0.0f, 0.0f}, 0.0f, 1};
 
 void player_update() {
     Vec2 input = {0, 0};
@@ -16,6 +17,8 @@ void player_update() {
     // 调试：按 X 键 (btn 6) 重新生成地图
     if (btnp(6,60,6)) {
         map_generate((unsigned int)rand(), true);
+        // 同步所有实体位置
+        game_entities_sync_all();
     }
 
     // 调试：按 A 键 (btn 5) 输出当前坐标

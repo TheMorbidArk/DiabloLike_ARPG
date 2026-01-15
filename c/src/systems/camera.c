@@ -13,7 +13,7 @@ static CameraState camera_state = CAMERA_STATE_TOUR;
 static CameraWaypoint waypoints[4];
 static int current_waypoint = 0;
 static Vec2 tour_pos = {32.0f, 32.0f}; // 当前漫游位置
-static float tour_speed = 0.15f; // 漫游速度
+static float tour_speed = 0.25f; // 漫游速度
 
 void camera_tour_init() {
     // 初始化路径点（等轴坐标系边界点）
@@ -28,7 +28,7 @@ void camera_tour_init() {
     waypoints[2].world_pos = (Vec2){50.0f, 45.0f};
     waypoints[2].speed = tour_speed;
 
-    waypoints[3].world_pos = (Vec2){5.0f, 45.0f};
+    waypoints[3].world_pos = (Vec2){10.0f, 45.0f};
     waypoints[3].speed = tour_speed;
 
     // 从第一个点开始
