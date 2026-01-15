@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define MAP_SIZE 64
+#define MAP_SIZE 96
 #define TILE_SIZE 8
 #define ISO_W 16
 #define ISO_H 8
@@ -12,14 +12,35 @@
 #define ID_OUTSIDE   20
 #define ID_PLAYER    256
 
+// TIC-80 Color Palette
+typedef enum {
+    COLOR_BLACK = 0,       // #1A1C2C
+    COLOR_PURPLE = 1,      // #5D275D
+    COLOR_RED = 2,         // #B13E53
+    COLOR_ORANGE = 3,      // #EF7D57
+    COLOR_YELLOW = 4,      // #FFCD75
+    COLOR_LIGHT_GREEN = 5, // #A7F070
+    COLOR_GREEN = 6,       // #38B764
+    COLOR_DARK_GREEN = 7,  // #257179
+    COLOR_DARK_BLUE = 8,   // #29366F
+    COLOR_BLUE = 9,        // #3B5DC9
+    COLOR_LIGHT_BLUE = 10, // #41A6F6
+    COLOR_CYAN = 11,       // #73EFF7
+    COLOR_WHITE = 12,      // #F4F4F4
+    COLOR_LIGHT_GREY = 13, // #94B0C2
+    COLOR_GREY = 14,       // #566C86
+    COLOR_DARK_GREY = 15   // #333C57
+} TIC80Color;
+
+// Game-specific color mappings
 #define COL_TRANSPARENT 0
-#define COL_HIGHLIGHT   12
-#define COL_GRASS_TOP   6
-#define COL_GRASS_SIDE  5
-#define COL_WALL_TOP    15
-#define COL_WALL_SIDE   13
-#define COL_OUT_TOP     2
-#define COL_OUT_SIDE    1
-#define COL_PLAYER      14
+#define COL_HIGHLIGHT   COLOR_WHITE
+#define COL_GRASS_TOP   COLOR_GREEN
+#define COL_GRASS_SIDE  COLOR_LIGHT_GREEN
+#define COL_WALL_TOP    COLOR_DARK_GREY
+#define COL_WALL_SIDE   COLOR_LIGHT_GREY
+#define COL_OUT_TOP     COLOR_RED
+#define COL_OUT_SIDE    COLOR_PURPLE
+#define COL_PLAYER      COLOR_GREY
 
 #endif

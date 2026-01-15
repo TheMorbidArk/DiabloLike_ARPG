@@ -48,7 +48,7 @@ void assets_init() {
     gen_block_16(ID_WALL, COL_WALL_TOP, COL_WALL_SIDE, COL_WALL_SIDE - 1, 12);
     gen_block_16(ID_OUTSIDE, COL_OUT_TOP, COL_OUT_SIDE, COL_OUT_SIDE, 3);
     for(int y=0; y<16; y++) for(int x=0; x<16; x++) {
-        set_composite_pixel(ID_PLAYER, x, y, 0); 
+        set_composite_pixel(ID_PLAYER, x, y, COLOR_BLACK);
         int dx = x - 8, dy = y - 8;
         if (dx*dx + dy*dy < 20) set_composite_pixel(ID_PLAYER, x, y-4, COL_PLAYER);
     }

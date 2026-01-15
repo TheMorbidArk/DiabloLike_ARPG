@@ -14,7 +14,7 @@ void map_init() {
     memset(MAP, 0, 32768); 
 }
 
-void map_generate(unsigned int seed) {
+void map_generate(unsigned int seed, bool generate_walls) {
     srand(seed);
     // 使用静态数组或在栈外分配，避免 WASM 栈溢出
     static uint8_t temp_map[MAP_SIZE * MAP_SIZE];
@@ -26,8 +26,13 @@ void map_generate(unsigned int seed) {
             if (x == 0 || x == MAP_SIZE - 1 || y == 0 || y == MAP_SIZE - 1) {
                 mset(x, y, ID_WALL);
             } else {
-                // 48% 的墙体比例通常能产生较好的洞穴迷宫效果
-                mset(x, y, (rand() % 100 < 48) ? ID_WALL : ID_GRASS);
+                // 如果 generate_walls 为 false，全部设为草地（用于测试）
+                if (!generate_walls) {
+                    mset(x, y, ID_GRASS);
+                } else {
+                    // 48% 的墙体比例通常能产生较好的洞穴迷宫效果
+                    mset(x, y, (rand() % 100 < 48) ? ID_WALL : ID_GRASS);
+                }
             }
         }
     }

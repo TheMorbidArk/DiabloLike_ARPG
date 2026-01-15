@@ -42,7 +42,7 @@ void render_minimap(Entity* player) {
                 int final_sx = cx + mm_rel_x;
                 int final_sy = cy + mm_rel_y;
 
-                uint8_t col = (tid == ID_WALL) ? (uint8_t)1 : (uint8_t)3; 
+                uint8_t col = (tid == ID_WALL) ? COLOR_PURPLE : COLOR_ORANGE;
                 rect(final_sx, final_sy, 2, 2, (int8_t)col);
             }
         }
@@ -58,35 +58,53 @@ void render_minimap(Entity* player) {
     float mid_y = (float)cy;
 
     // 使用颜色 12 (或 15 白色) 绘制包裹线
-    line(mid_x, b_top_y, b_right_x, mid_y, (int8_t)12);     // 右上
-    line(b_right_x, mid_y, mid_x, b_bottom_y, (int8_t)12); // 右下
-    line(mid_x, b_bottom_y, b_left_x, mid_y, (int8_t)12);  // 左下
-    line(b_left_x, mid_y, mid_x, b_top_y, (int8_t)12);     // 左上
+    line(mid_x, b_top_y, b_right_x, mid_y, COLOR_WHITE);     // 右上
+    line(b_right_x, mid_y, mid_x, b_bottom_y, COLOR_WHITE); // 右下
+    line(mid_x, b_bottom_y, b_left_x, mid_y, COLOR_WHITE);  // 左下
+    line(b_left_x, mid_y, mid_x, b_top_y, COLOR_WHITE);     // 左上
 
     // 5. 绘制玩家点 (最顶层)
-    rect(cx - 1, cy - 1, 2, 2, (int8_t)15);
+    rect(cx - 1, cy - 1, 2, 2, COLOR_DARK_GREY);
 }
 
 void render_scene(Entity* player) {
-    cls(0); 
+    cls(COLOR_BLACK); 
     uint8_t trans = 0;
     
-    int range = 12;
-    int px = (int)player->pos.x;
-    int py = (int)player->pos.y;
+    // 外部声明相机位置
+    extern float cam_x, cam_y;
+    
+    // 根据相机位置计算屏幕边界对应的世界坐标范围
+    // 使用保守的估算来确保覆盖所有可见区域
+    // 增加范围以确保相机漫游到边界时能看到足够的地图内容
+    int range_x = 50;  // 水平方向更大的覆盖范围
+    int range_y = 45;  // 垂直方向更大的覆盖范围
+    
+    // 计算相机中心对应的等轴坐标
+    float center_iso_x = cam_x + WIDTH / 2.0f;
+    float center_iso_y = cam_y + HEIGHT / 2.0f;
+    
+    // 反推相机中心大致对应的世界坐标
+    float center_wx = (center_iso_x / (ISO_W / 2.0f) + center_iso_y / (ISO_H / 2.0f)) / 2.0f;
+    float center_wy = (center_iso_y / (ISO_H / 2.0f) - center_iso_x / (ISO_W / 2.0f)) / 2.0f;
+    
+    int cx = (int)center_wx;
+    int cy = (int)center_wy;
 
-    for(int y = py - range; y <= py + range; y++) {
-        for(int x = px - range; x <= px + range; x++) {
-            if (!map_is_inside(x, y)) continue;
-
-            int tid = mget(x, y);
-            if (tid == 0) continue;
+    for(int y = cy - range_y; y <= cy + range_y; y++) {
+        for(int x = cx - range_x; x <= cx + range_x; x++) {
+            int tid;
+            if (!map_is_inside(x, y)) {
+                // 地图边界外使用外部地板
+                tid = ID_OUTSIDE;
+            } else {
+                tid = mget(x, y);
+                if (tid == 0) continue;
+            }
 
             int sx, sy;
             world_to_screen((float)x, (float)y, 0.0f, &sx, &sy);
             
-            if (sx < -16 || sx > WIDTH || sy < -16 || sy > HEIGHT) continue;
-
             // --- 关键修改：区分地板和墙的绘制 ---
             if (tid == ID_WALL) {
                 // 1. 如果是墙，通常需要先在底下垫一个地板，防止墙体透明部分露出黑底
@@ -101,7 +119,9 @@ void render_scene(Entity* player) {
             }
 
             // --- 渲染玩家 ---
-            if (px == x && py == y) {
+            int player_tile_x = (int)player->pos.x;
+            int player_tile_y = (int)player->pos.y;
+            if (player_tile_x == x && player_tile_y == y) {
                 int psx, psy;
                 world_to_screen(player->pos.x, player->pos.y, player->z, &psx, &psy);
                 // 玩家也需要向上抬起，否则会埋进土里

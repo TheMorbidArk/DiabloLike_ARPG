@@ -399,21 +399,4 @@ WASM_IMPORT("trace")
 void trace(const char* text, int8_t color);
 
 
-typedef enum {
-    CLR_BLACK       = 0,  // 深黑
-    CLR_PURPLE      = 1,  // 深紫 (你之前用来画墙，看起来像黑色)
-    CLR_RED         = 2,  // 红色
-    CLR_ORANGE      = 3,  // 橙色 (你之前用来画地面，看起来像亮红)
-    CLR_YELLOW      = 4,  // 黄色
-    CLR_LIGHT_GREEN = 5,  // 浅绿
-    CLR_GREEN       = 6,  // 绿色
-    CLR_DARK_TEAL   = 7,  // 深青/蓝绿
-    CLR_DARK_BLUE   = 8,  // 深蓝
-    CLR_BLUE        = 9,  // 蓝色
-    CLR_LIGHT_BLUE  = 10, // 浅蓝
-    CLR_CYAN        = 11, // 青色
-    CLR_WHITE       = 12, // 白色 (你之前用来画边框)
-    CLR_LIGHT_GRAY  = 13, // 浅灰
-    CLR_GRAY        = 14, // 灰色
-    CLR_DARK_GRAY   = 15  // 深灰
-} TicColor;
+// Color enum moved to config.h as TIC80Color (COLOR_ prefix)

@@ -4,6 +4,7 @@
 #include "../systems/map.h"
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 Entity player = {{32.0f, 32.0f}, 0.0f, 1};
 
@@ -14,7 +15,14 @@ void player_update() {
 
     // 调试：按 X 键 (btn 6) 重新生成地图
     if (btnp(6,60,6)) {
-        map_generate((unsigned int)rand());
+        map_generate((unsigned int)rand(), true);
+    }
+
+    // 调试：按 A 键 (btn 5) 输出当前坐标
+    if (btnp(5,30,30)) {
+        char coord_str[64];
+        sprintf(coord_str, "Player pos: (%.2f, %.2f)", player.pos.x, player.pos.y);
+        trace(coord_str, COLOR_WHITE);
     }
 
     Vec2 move_vec = {0, 0};
@@ -39,4 +47,6 @@ void player_update() {
         float check_y = player.pos.y + move_vec.y + (move_vec.y > 0 ? margin : -margin);
         if (!is_solid(player.pos.x, check_y)) player.pos.y += move_vec.y;
     }
+
+
 }
