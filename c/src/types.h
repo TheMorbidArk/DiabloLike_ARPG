@@ -17,6 +17,7 @@ typedef struct {
     EntityType type;
     float x;
     float y;
+    float z;
     int tile_id;
 } GameEntity;
 

@@ -15,6 +15,25 @@ static int current_waypoint = 0;
 static Vec2 tour_pos = {32.0f, 32.0f}; // 当前漫游位置
 static float tour_speed = 0.25f; // 漫游速度
 
+// 简单的平方根近似函数
+static float sqrtf_approx(float x) {
+    if (x <= 0.0f) return 0.0f;
+    
+    // 使用快速平方根近似（牛顿迭代法一次迭代）
+    float y = x * 0.5f;
+    float z = y;
+    
+    // 将浮点数位模式解释为整数（用于快速逆平方根）
+    int i = *(int*)&x;
+    i = 0x5f3759df - (i >> 1);
+    z = *(float*)&i;
+    
+    // 一次牛顿迭代
+    z = z * (1.5f - (x * 0.5f * z * z));
+    
+    return x * z;
+}
+
 void camera_tour_init() {
     // 初始化路径点（等轴坐标系边界点）
     // 路径点稍微向内移动，避免相机超出边界
@@ -51,7 +70,7 @@ void camera_tour_update() {
     Vec2 dir;
     dir.x = target.x - tour_pos.x;
     dir.y = target.y - tour_pos.y;
-    float distance = sqrtf(dir.x * dir.x + dir.y * dir.y);
+    float distance = sqrtf_approx(dir.x * dir.x + dir.y * dir.y);
 
     if (distance < speed) {
         // 到达当前路径点

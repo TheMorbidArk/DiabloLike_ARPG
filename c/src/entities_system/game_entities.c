@@ -5,6 +5,7 @@
 #include "../entities/player.h"
 #include <stdlib.h>
 
+
 // 全局实体数组
 static GameEntity entities[MAX_GAME_ENTITIES];
 static int entity_count = 0;
@@ -16,16 +17,18 @@ void game_entities_init() {
         entities[i].type = ENTITY_TYPE_PLAYER;
         entities[i].x = 0;
         entities[i].y = 0;
+        entities[i].z = 0;
         entities[i].tile_id = 0;
     }
 }
 
-void game_entity_add(EntityType type, float x, float y, int tile_id) {
+void game_entity_add(EntityType type, float x, float y, float z, int tile_id) {
     if (entity_count >= MAX_GAME_ENTITIES) return;
     
     entities[entity_count].type = type;
     entities[entity_count].x = x;
     entities[entity_count].y = y;
+    entities[entity_count].z = z;
     entities[entity_count].tile_id = tile_id;
     entity_count++;
 }
@@ -63,6 +66,7 @@ void game_entities_sync_all() {
             // 同步玩家位置
             player.pos.x = entities[i].x;
             player.pos.y = entities[i].y;
+            player.z = entities[i].z;
         }
         // 未来可以在这里添加其他实体的同步逻辑
         // 例如：
@@ -80,6 +84,7 @@ void game_entities_update_from_references() {
             // 从玩家更新实体位置
             entities[i].x = player.pos.x;
             entities[i].y = player.pos.y;
+            entities[i].z = player.z;
         }
         // 未来可以在这里添加其他实体的更新逻辑
         // 例如：

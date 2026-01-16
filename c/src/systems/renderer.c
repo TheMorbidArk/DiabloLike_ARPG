@@ -5,7 +5,11 @@
 #include "../systems/map.h"
 #include "../entities_system/game_entities.h"
 #include "../systems/scene.h"
-#include <stdlib.h>
+#include <stdio.h>
+
+#define ABS(x) ((x) < 0 ? -(x) : (x))
+
+
 
 static uint8_t trans_map[] = {0};
 
@@ -14,13 +18,13 @@ void render_minimap(Entity* player) {
     const int MM_W = 64;
     const int MM_H = 32;
     const int offset_x = WIDTH - MM_W - 8; // 稍微多留一点边距
-    const int offset_y = 8;                
+    const int offset_y = 8;
 
     int cx = offset_x + MM_W / 2;
     int cy = offset_y + MM_H / 2;
 
     // 2. 渲染参数
-    const int RADIUS = 18; 
+    const int RADIUS = 18;
     int px = (int)player->pos.x;
     int py = (int)player->pos.y;
 
@@ -39,7 +43,7 @@ void render_minimap(Entity* player) {
 
                 // --- 裁剪逻辑优化 ---
                 // 稍微收紧裁剪范围（MM_W - 4），确保 2x2 的色块不会溢出到边框外
-                if (abs(mm_rel_x) + abs(dx + dy) >= MM_W - 4) continue;
+                if (ABS(mm_rel_x) + ABS(dx + dy) >= MM_W - 4) continue;
 
                 int final_sx = cx + mm_rel_x;
                 int final_sy = cy + mm_rel_y;
@@ -74,27 +78,27 @@ void render_scene(Entity* player) {
     if (scene_get_current() != SCENE_EXPLORATION) {
         return;
     }
-    
-    cls(COLOR_BLACK); 
+
+    cls(COLOR_BLACK);
     uint8_t trans = 0;
-    
+
     // 外部声明相机位置
     extern float cam_x, cam_y;
-    
+
     // 根据相机位置计算屏幕边界对应的世界坐标范围
     // 使用保守的估算来确保覆盖所有可见区域
     // 增加范围以确保相机漫游到边界时能看到足够的地图内容
     int range_x = 50;  // 水平方向更大的覆盖范围
     int range_y = 45;  // 垂直方向更大的覆盖范围
-    
+
     // 计算相机中心对应的等轴坐标
     float center_iso_x = cam_x + WIDTH / 2.0f;
     float center_iso_y = cam_y + HEIGHT / 2.0f;
-    
+
     // 反推相机中心大致对应的世界坐标
     float center_wx = (center_iso_x / (ISO_W / 2.0f) + center_iso_y / (ISO_H / 2.0f)) / 2.0f;
     float center_wy = (center_iso_y / (ISO_H / 2.0f) - center_iso_x / (ISO_W / 2.0f)) / 2.0f;
-    
+
     int cx = (int)center_wx;
     int cy = (int)center_wy;
 
@@ -111,11 +115,11 @@ void render_scene(Entity* player) {
 
             int sx, sy;
             world_to_screen((float)x, (float)y, 0.0f, &sx, &sy);
-            
+
             // --- 关键修改：区分地板和墙的绘制 ---
             if (tid == ID_WALL) {
                 // 1. 如果是墙，通常需要先在底下垫一个地板，防止墙体透明部分露出黑底
-                // spr(ID_GRASS, sx, sy, &trans, 1, 1, 0, 0, 2, 2); 
+                // spr(ID_GRASS, sx, sy, &trans, 1, 1, 0, 0, 2, 2);
 
                 // 2. 将墙的渲染位置向上抬起 8 像素（一个高度单位）
                 // 这样它的底部才会正好落在草地的位置上
@@ -139,14 +143,14 @@ void render_scene(Entity* player) {
             // --- 渲染游戏实体 ---
             GameEntity* entities = game_entities_get_array();
             int entity_count = game_entities_get_count();
-            
+
             for (int e = 0; e < entity_count; e++) {
                 int entity_x = (int)entities[e].x;
                 int entity_y = (int)entities[e].y;
-                
+
                 if (entity_x == x && entity_y == y && entities[e].type != ENTITY_TYPE_PLAYER) {
                     int esx, esy;
-                    world_to_screen(entities[e].x, entities[e].y, 0.0f, &esx, &esy);
+                    world_to_screen(entities[e].x, entities[e].y, entities[e].z, &esx, &esy);
                     // 实体需要向上抬起，与玩家保持一致的高度
                     spr(entities[e].tile_id, esx, esy - 8, &trans, 1, 1, 0, 0, 2, 2);
                 }
@@ -154,4 +158,40 @@ void render_scene(Entity* player) {
         }
     }
     render_minimap(player);
+    render_altimeter(player);
+}
+
+void render_altimeter(Entity* player) {
+    // 只在探索场景下显示高度计
+    if (scene_get_current() != SCENE_EXPLORATION) {
+        return;
+    }
+
+    // 绘制高度计背景框
+    rect(ALTIMETER_X, ALTIMETER_Y,
+         ALTIMETER_WIDTH, ALTIMETER_HEIGHT,
+         (int8_t)ALTIMETER_BG_COLOR);
+
+    // 计算填充高度（基于当前Z值）
+    float z_percentage = player->z / MAX_Z_HEIGHT;
+    int fill_height = (int)(z_percentage * (float)(ALTIMETER_HEIGHT - 4));
+
+    if (fill_height > 0) {
+        // 绘制填充部分（从底部开始）
+        int fill_y = ALTIMETER_Y + ALTIMETER_HEIGHT - 2 - fill_height;
+        rect(ALTIMETER_X + 2, fill_y,
+             ALTIMETER_WIDTH - 4, fill_height,
+             (int8_t)ALTIMETER_FILL_COLOR);
+    }
+
+    // 绘制边框
+    rectb(ALTIMETER_X, ALTIMETER_Y,
+          ALTIMETER_WIDTH, ALTIMETER_HEIGHT,
+          (int8_t)ALTIMETER_BORDER_COLOR);
+
+    // 显示当前Z值文本
+    char z_str[16];
+    sprintf(z_str, "%.1f", player->z);
+    print(z_str, ALTIMETER_X, ALTIMETER_Y + ALTIMETER_HEIGHT + 2,
+          (int8_t)COLOR_WHITE, 1, 1, 0);
 }

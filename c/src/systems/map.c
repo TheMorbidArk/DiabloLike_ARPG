@@ -139,10 +139,13 @@ bool map_is_inside(int x, int y) {
     return x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE;
 }
 
-bool is_solid(float x, float y) {
+bool is_solid(float x, float y, float z) {
     int ix = (int)x; int iy = (int)y;
     if (ix >= 0 && ix < MAP_SIZE && iy >= 0 && iy < MAP_SIZE) {
-        if (mget(ix, iy) == ID_WALL) return true;
+        if (mget(ix, iy) == ID_WALL) {
+            // 检查玩家Z高度是否低于墙体站立高度
+            return z < WALL_STAND_HEIGHT;
+        }
     }
     return false;
 }

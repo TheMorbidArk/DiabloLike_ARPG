@@ -2,10 +2,10 @@
 #include "battle.h"
 #include "../config.h"
 #include "../tic80.h"
-#include <string.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <string.h>
 
 // 当前场景状态
 static GameScene current_scene = SCENE_EXPLORATION;
@@ -19,7 +19,7 @@ void scene_init() {
     current_scene = SCENE_EXPLORATION;
     previous_scene = SCENE_EXPLORATION;
     is_transitioning = 0;
-    memset(&scene_data, 0, sizeof(SceneData));
+    scene_data.player_x = 0.0f; scene_data.player_y = 0.0f; scene_data.from_scene = 0; scene_data.battle_result = 0;
 }
 
 // 切换场景
@@ -81,10 +81,10 @@ void scene_update() {
 
                         if (type == ENTITY_TYPE_RED_BALL) {
                             // Debug：战斗触发信息
-                            char trigger_str[64];
-                            sprintf(trigger_str, "Battle triggered! Entity at (%.2f, %.2f)",
-                                    entities[collision_index].x, entities[collision_index].y);
-                            trace(trigger_str, COLOR_RED);
+//                            char trigger_str[64];
+//                            sprintf(trigger_str, "Battle triggered! Entity at (%.2f, %.2f)",
+//                                    entities[collision_index].x, entities[collision_index].y);
+//                            trace(trigger_str, COLOR_RED);
 
                             // 碰到红球，触发战斗
                             scene_trigger_battle(0); // 0 = Goblin
@@ -149,25 +149,28 @@ int scene_check_entity_collision(EntityType type) {
 
     float player_x = player.pos.x;
     float player_y = player.pos.y;
+    float player_z = player.z;
 
     for (int i = 0; i < entity_count; i++) {
         if (entities[i].type == type) {
             float entity_x = entities[i].x;
             float entity_y = entities[i].y;
+            float entity_z = entities[i].z;
 
             // 碰撞检测：检查玩家是否在实体周围2x2范围内
             float dx = player_x - entity_x;
             float dy = player_y - entity_y;
+            float dz = player_z - entity_z;
 
             // 只在接近时输出debug信息（距离小于5）
-            if (fabsf(dx) < 5.0f && fabsf(dy) < 5.0f) {
-                char debug_str[128];
-                sprintf(debug_str, "RED_BALL: Player(%.4f,%.4f) vs Entity(%.4f,%.4f) dist(%.4f,%.4f)",
-                        player_x, player_y, entity_x, entity_y, dx, dy);
-                trace(debug_str, COLOR_WHITE);
+            if ((dx < 0.0f ? -dx : dx) < 5.0f && (dy < 0.0f ? -dy : dy) < 5.0f) {
+//                char debug_str[128];
+//                sprintf(debug_str, "RED_BALL: Player(%.4f,%.4f,%.4f) vs Entity(%.4f,%.4f,%.4f) dist(%.4f,%.4f,%.4f)",
+//                        player_x, player_y, player_z, entity_x, entity_y, entity_z, dx, dy, dz);
+//                trace(debug_str, COLOR_WHITE);
             }
 
-            if (fabsf(dx) <= 1.5f && fabsf(dy) <= 1.5f) {
+            if (fabsf(dx) <= 1.5f && fabsf(dy) <= 1.5f && fabsf(dz) < COLLISION_Z_THRESHOLD) {
                 return i;
             }
         }
@@ -183,6 +186,7 @@ int scene_check_any_entity_collision() {
 
     float player_x = player.pos.x;
     float player_y = player.pos.y;
+    float player_z = player.z;
 
     for (int i = 0; i < entity_count; i++) {
         // 跳过玩家实体自己
@@ -192,21 +196,23 @@ int scene_check_any_entity_collision() {
 
         float entity_x = entities[i].x;
         float entity_y = entities[i].y;
+        float entity_z = entities[i].z;
 
         // 碰撞检测：检查玩家是否在实体周围2x2范围内
         float dx = player_x - entity_x;
         float dy = player_y - entity_y;
+        float dz = player_z - entity_z;
 
         // 只在接近时输出debug信息（距离小于5）
         if (fabsf(dx) < 5.0f && fabsf(dy) < 5.0f) {
             char debug_str[128];
             const char* type_name = (entities[i].type == ENTITY_TYPE_RED_BALL) ? "RED_BALL" : "OTHER";
-            sprintf(debug_str, "Player(%.4f,%.4f) vs %s[%d](%.4f,%.4f) dist(%.4f,%.4f)",
-                    player_x, player_y, type_name, i, entity_x, entity_y, dx, dy);
+            sprintf(debug_str, "Player(%.4f,%.4f,%.4f) vs %s[%d](%.4f,%.4f,%.4f) dist(%.4f,%.4f,%.4f)",
+                    player_x, player_y, player_z, type_name, i, entity_x, entity_y, entity_z, dx, dy, dz);
             trace(debug_str, COLOR_YELLOW);
         }
 
-        if (fabsf(dx) <= 1.5f && fabsf(dy) <= 1.5f) {
+        if (fabsf(dx) <= 1.5f && fabsf(dy) <= 1.5f && fabsf(dz) < COLLISION_Z_THRESHOLD) {
             return i;
         }
     }

@@ -70,5 +70,24 @@ typedef enum {
 #define BATTLE_MENU_Y    100
 #define BATTLE_MENU_ITEM_H 12
 
+// Z-axis Configuration
+#define MAX_Z_HEIGHT 5.0f
+#define Z_MOVE_SPEED 0.25f
+#define COLLISION_Z_THRESHOLD 0.5f
+#define WALL_BASE_HEIGHT 1.0f
+#define MAX_WALL_HEIGHT 6
+#define WALL_STAND_HEIGHT 0.8f
+#define GRAVITY 0.01f
+#define PLATFORM_SNAP_THRESHOLD 0.3f
+
+// Altimeter UI Configuration
+#define ALTIMETER_X 5
+#define ALTIMETER_Y 20
+#define ALTIMETER_WIDTH 8
+#define ALTIMETER_HEIGHT 100
+#define ALTIMETER_BORDER_COLOR COLOR_WHITE
+#define ALTIMETER_FILL_COLOR COLOR_LIGHT_BLUE
+#define ALTIMETER_BG_COLOR COLOR_DARK_GREY
+
 
 #endif

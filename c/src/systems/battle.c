@@ -26,7 +26,7 @@ static int animation_source = 0;
 
 // UI绘制辅助函数
 static void draw_hp_bar(int x, int y, int current, int max, int width, int color) {
-    float filled_f = (float)current / max * width;
+    float filled_f = (float)current / (float)max * (float)width;
     int filled = (int)filled_f;
     rectb(x, y, width + 4, 14, COLOR_WHITE);
     rect(x + 2, y + 2, (int8_t)filled, 10, (int8_t)color);
@@ -214,7 +214,7 @@ void battle_update() {
             }
             break;
 
-        case BATTLE_ENEMY_TURN:
+        case BATTLE_ENEMY_TURN: {
             // Debug: 敌人回合信息
             static int last_anim_timer = 0;
             if (last_anim_timer != animation_timer) {
@@ -260,6 +260,7 @@ void battle_update() {
                 // 不需要标记敌人行动已完成，因为每次进入敌人回合都会重置
             }
             break;
+        }
 
         case BATTLE_ANIMATION:
             // 等待动画完成

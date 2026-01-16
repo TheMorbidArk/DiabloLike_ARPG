@@ -21,10 +21,10 @@ void BOOT() {
     game_entities_init();
     
     // 添加玩家实体（从地图中心开始）
-    game_entity_add(ENTITY_TYPE_PLAYER, (float)(MAP_SIZE / 2), (float)(MAP_SIZE / 2), ID_PLAYER);
+    game_entity_add(ENTITY_TYPE_PLAYER, (float)(MAP_SIZE / 2), (float)(MAP_SIZE / 2), 0.0f, ID_PLAYER);
     
     // 添加红色球实体
-    game_entity_add(ENTITY_TYPE_RED_BALL, 48.0f, 40.0f, ID_RED_BALL);
+    game_entity_add(ENTITY_TYPE_RED_BALL, 48.0f, 40.0f, 0.0f, ID_RED_BALL);
 
     // 使用一个随机种子生成地图
     // 注意：在实际开发中，可以从 TIC-80 的 RAM 读取实时时间作为种子

@@ -8,9 +8,9 @@ void game_entities_init();
 
 // 添加一个游戏实体
 // type: 实体类型
-// x, y: 世界坐标
+// x, y, z: 世界坐标
 // tile_id: 精灵ID
-void game_entity_add(EntityType type, float x, float y, int tile_id);
+void game_entity_add(EntityType type, float x, float y, float z, int tile_id);
 
 // 获取游戏实体数组指针
 GameEntity* game_entities_get_array();
