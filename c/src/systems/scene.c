@@ -2,6 +2,7 @@
 #include "battle.h"
 #include "../config.h"
 #include "../tic80.h"
+#include "../entities/entity_manager.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,8 +34,8 @@ void scene_switch(GameScene new_scene) {
 
     // 如果是进入战斗场景，保存玩家位置
     if (new_scene == SCENE_BATTLE && current_scene == SCENE_EXPLORATION) {
-        scene_data.player_x = player.pos.x;
-        scene_data.player_y = player.pos.y;
+        EntityID player_id = entity_get_player();
+        entity_get_position(player_id, &scene_data.player_x, &scene_data.player_y, (float*)0);
     }
 
     // 退出当前场景
@@ -76,7 +77,7 @@ void scene_update() {
                 if (battle_cooldown == 0) {
                     int collision_index = scene_check_any_entity_collision();
                     if (collision_index >= 0) {
-                        GameEntity* entities = game_entities_get_array();
+                        EntityData* entities = entity_get_array();
                         EntityType type = entities[collision_index].type;
 
                         if (type == ENTITY_TYPE_RED_BALL) {
@@ -144,18 +145,18 @@ void scene_render() {
 
 // 检查与指定类型实体的碰撞
 int scene_check_entity_collision(EntityType type) {
-    GameEntity* entities = game_entities_get_array();
-    int entity_count = game_entities_get_count();
+    EntityData* entities = entity_get_array();
+    int entity_count = entity_get_count();
 
-    float player_x = player.pos.x;
-    float player_y = player.pos.y;
-    float player_z = player.z;
+    float player_x, player_y, player_z;
+    EntityID player_id = entity_get_player();
+    entity_get_position(player_id, &player_x, &player_y, &player_z);
 
     for (int i = 0; i < entity_count; i++) {
         if (entities[i].type == type) {
-            float entity_x = entities[i].x;
-            float entity_y = entities[i].y;
-            float entity_z = entities[i].z;
+            float entity_x = entities[i].entity.pos.x;
+            float entity_y = entities[i].entity.pos.y;
+            float entity_z = entities[i].entity.z;
 
             // 碰撞检测：检查玩家是否在实体周围2x2范围内
             float dx = player_x - entity_x;
@@ -181,12 +182,12 @@ int scene_check_entity_collision(EntityType type) {
 
 // 检查与任意实体的碰撞
 int scene_check_any_entity_collision() {
-    GameEntity* entities = game_entities_get_array();
-    int entity_count = game_entities_get_count();
+    EntityData* entities = entity_get_array();
+    int entity_count = entity_get_count();
 
-    float player_x = player.pos.x;
-    float player_y = player.pos.y;
-    float player_z = player.z;
+    float player_x, player_y, player_z;
+    EntityID player_id = entity_get_player();
+    entity_get_position(player_id, &player_x, &player_y, &player_z);
 
     for (int i = 0; i < entity_count; i++) {
         // 跳过玩家实体自己
@@ -194,9 +195,9 @@ int scene_check_any_entity_collision() {
             continue;
         }
 
-        float entity_x = entities[i].x;
-        float entity_y = entities[i].y;
-        float entity_z = entities[i].z;
+        float entity_x = entities[i].entity.pos.x;
+        float entity_y = entities[i].entity.pos.y;
+        float entity_z = entities[i].entity.z;
 
         // 碰撞检测：检查玩家是否在实体周围2x2范围内
         float dx = player_x - entity_x;
@@ -223,8 +224,8 @@ int scene_check_any_entity_collision() {
 // 触发战斗
 void scene_trigger_battle(int enemy_type) {
     // 保存当前场景数据
-    scene_data.player_x = player.pos.x;
-    scene_data.player_y = player.pos.y;
+    EntityID player_id = entity_get_player();
+    entity_get_position(player_id, &scene_data.player_x, &scene_data.player_y, (float*)0);
     scene_data.from_scene = SCENE_EXPLORATION;
 
     // Debug：显示切换场景信息
@@ -249,18 +250,20 @@ void scene_return_from_battle(BattleResult result) {
     trace(result_str, COLOR_YELLOW);
 
     // 无论战斗结果如何，都将玩家移到安全位置
-    GameEntity* entities = game_entities_get_array();
+    EntityData* entities = entity_get_array();
+    int entity_count = entity_get_count();
     float red_ball_x = -1.0f, red_ball_y = -1.0f;
 
     // 找到红球位置
-    for (int i = 0; i < game_entities_get_count(); i++) {
+    for (int i = 0; i < entity_count; i++) {
         if (entities[i].type == ENTITY_TYPE_RED_BALL) {
-            red_ball_x = entities[i].x;
-            red_ball_y = entities[i].y;
+            red_ball_x = entities[i].entity.pos.x;
+            red_ball_y = entities[i].entity.pos.y;
             break;
         }
     }
 
+    float new_player_x, new_player_y;
     if (red_ball_x >= 0 && red_ball_y >= 0) {
         // 计算从红球到玩家的方向，将玩家移到红球对面
         float dx = scene_data.player_x - red_ball_x;
@@ -274,37 +277,44 @@ void scene_return_from_battle(BattleResult result) {
 
             // 移动到红球对面3-4个单位距离（足够安全）
             float distance = 3.5f; // 可以是3.0-4.0之间的随机值
-            player.pos.x = red_ball_x - dx * distance;
-            player.pos.y = red_ball_y - dy * distance;
+            new_player_x = red_ball_x - dx * distance;
+            new_player_y = red_ball_y - dy * distance;
         } else {
             // 如果玩家已经在红球位置，随机移动
-            player.pos.x = red_ball_x + (rand() % 3 - 1) * 4.0f;
-            player.pos.y = red_ball_y + (rand() % 3 - 1) * 4.0f;
+            new_player_x = red_ball_x + (rand() % 3 - 1) * 4.0f;
+            new_player_y = red_ball_y + (rand() % 3 - 1) * 4.0f;
         }
 
         // Debug：显示玩家新位置
         char pos_str[128];
-        sprintf(pos_str, "Player moved to safe pos: (%.2f, %.2f)", player.pos.x, player.pos.y);
+        sprintf(pos_str, "Player moved to safe pos: (%.2f, %.2f)", new_player_x, new_player_y);
         trace(pos_str, COLOR_LIGHT_BLUE);
     } else {
         // 找不到红球，保持原位置
-        player.pos.x = scene_data.player_x;
-        player.pos.y = scene_data.player_y;
+        new_player_x = scene_data.player_x;
+        new_player_y = scene_data.player_y;
         
         // Debug：显示未找到红球
         char no_ball_str[64];
-        sprintf(no_ball_str, "Red ball not found, player kept at: (%.2f, %.2f)", player.pos.x, player.pos.y);
+        sprintf(no_ball_str, "Red ball not found, player kept at: (%.2f, %.2f)", new_player_x, new_player_y);
         trace(no_ball_str, COLOR_ORANGE);
     }
+
+    // 更新玩家位置到实体管理器
+    EntityID player_id = entity_get_player();
+    entity_set_position(player_id, new_player_x, new_player_y, 0.0f);
+    
+    // 同步到player全局变量（临时保持兼容性）
+    player.pos.x = new_player_x;
+    player.pos.y = new_player_y;
 
     // 根据战斗结果处理
     if (result == BATTLE_RESULT_VICTORY) {
         // 移除触发战斗的实体（红球）
-        for (int i = 0; i < game_entities_get_count(); i++) {
+        for (int i = 0; i < entity_count; i++) {
             if (entities[i].type == ENTITY_TYPE_RED_BALL) {
                 // 将实体移到地图外，相当于删除
-                entities[i].x = -1.0f;
-                entities[i].y = -1.0f;
+                entity_remove(i);
                 
                 // Debug：显示红球已删除
                 trace("Red ball removed after victory", COLOR_GREEN);
@@ -315,9 +325,6 @@ void scene_return_from_battle(BattleResult result) {
 
     // 返回探索场景
     scene_switch(SCENE_EXPLORATION);
-    
-    // 更新实体系统中的玩家位置
-    game_entities_update_from_references();
     
     // 设置更长的战斗冷却，防止立即再次触发（120帧=2秒）
     battle_cooldown = 120;

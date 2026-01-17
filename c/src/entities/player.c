@@ -67,7 +67,7 @@ void player_update() {
             is_grounded = 1;
         }
         // On wall (platform)
-        else if (mget(tile_x, tile_y) == ID_WALL && 
+        else if (map_get_tile(tile_x, tile_y) == ID_WALL &&
                  player.z <= WALL_STAND_HEIGHT + 0.1f &&
                  player.z >= WALL_STAND_HEIGHT - 0.1f) {
             is_grounded = 1;
@@ -111,7 +111,7 @@ void player_update() {
     
     // Wall platform collision
     if (tile_x >= 0 && tile_x < MAP_SIZE && tile_y >= 0 && tile_y < MAP_SIZE) {
-        if (mget(tile_x, tile_y) == ID_WALL) {
+        if (map_get_tile(tile_x, tile_y) == ID_WALL) {
             if (player.z > WALL_STAND_HEIGHT - 0.2f && player.z < WALL_STAND_HEIGHT + 0.2f) {
                 // Landing on wall platform
                 player.z = WALL_STAND_HEIGHT;

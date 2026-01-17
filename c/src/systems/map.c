@@ -1,7 +1,7 @@
 #include "map.h"
 #include "../config.h"
 #include "../tic80.h"
-#include "../entities_system/game_entities.h"
+#include "../entities/entity_manager.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,14 +25,14 @@ void map_generate(unsigned int seed, bool generate_walls) {
         for (int x = 0; x < MAP_SIZE; x++) {
             // 边缘强制设为墙，形成封闭迷宫
             if (x == 0 || x == MAP_SIZE - 1 || y == 0 || y == MAP_SIZE - 1) {
-                mset(x, y, ID_WALL);
+                map_set_tile(x, y, ID_WALL);
             } else {
                 // 如果 generate_walls 为 false，全部设为草地（用于测试）
                 if (!generate_walls) {
-                    mset(x, y, ID_GRASS);
+                    map_set_tile(x, y, ID_GRASS);
                 } else {
                     // 48% 的墙体比例通常能产生较好的洞穴迷宫效果
-                    mset(x, y, (rand() % 100 < 48) ? ID_WALL : ID_GRASS);
+                    map_set_tile(x, y, (rand() % 100 < 48) ? ID_WALL : ID_GRASS);
                 }
             }
         }
@@ -56,7 +56,7 @@ void map_generate(unsigned int seed, bool generate_walls) {
         // 同步回地图
         for (int y = 1; y < MAP_SIZE - 1; y++) {
             for (int x = 1; x < MAP_SIZE - 1; x++) {
-                mset(x, y, temp_map[y * MAP_SIZE + x]);
+                map_set_tile(x, y, temp_map[y * MAP_SIZE + x]);
             }
         }
     }
@@ -71,13 +71,13 @@ void map_generate(unsigned int seed, bool generate_walls) {
     int head = 0, tail = 0;
 
     // 获取所有实体
-    GameEntity* entities = game_entities_get_array();
-    int entity_count = game_entities_get_count();
+    EntityData* entities = entity_get_array();
+    int entity_count = entity_get_count();
 
     // 为所有实体的3x3区域添加到BFS起点，确保连通性
     for (int e = 0; e < entity_count; e++) {
-        int entity_x = (int)entities[e].x;
-        int entity_y = (int)entities[e].y;
+        int entity_x = (int)entities[e].entity.pos.x;
+        int entity_y = (int)entities[e].entity.pos.y;
         
         // 强制实体和周围为草地
         for(int dy = -1; dy <= 1; dy++) {
@@ -85,7 +85,7 @@ void map_generate(unsigned int seed, bool generate_walls) {
                 int tx = entity_x + dx;
                 int ty = entity_y + dy;
                 if (tx >= 0 && tx < MAP_SIZE && ty >= 0 && ty < MAP_SIZE) {
-                    mset(tx, ty, ID_GRASS);
+                    map_set_tile(tx, ty, ID_GRASS);
                     
                     // 如果这个格子还未访问，添加到BFS队列
                     if (!temp_map[ty * MAP_SIZE + tx]) {
@@ -125,8 +125,8 @@ void map_generate(unsigned int seed, bool generate_walls) {
     // 将所有无法到达的草地全部填成墙
     for (int y = 0; y < MAP_SIZE; y++) {
         for (int x = 0; x < MAP_SIZE; x++) {
-            if (mget(x, y) == ID_GRASS && !temp_map[y * MAP_SIZE + x]) {
-                mset(x, y, ID_WALL); 
+            if (map_get_tile(x, y) == ID_GRASS && !temp_map[y * MAP_SIZE + x]) {
+                map_set_tile(x, y, ID_WALL);
             }
         }
     }
@@ -142,10 +142,21 @@ bool map_is_inside(int x, int y) {
 bool is_solid(float x, float y, float z) {
     int ix = (int)x; int iy = (int)y;
     if (ix >= 0 && ix < MAP_SIZE && iy >= 0 && iy < MAP_SIZE) {
-        if (mget(ix, iy) == ID_WALL) {
+        if (map_get_tile(ix, iy) == ID_WALL) {
             // 检查玩家Z高度是否低于墙体站立高度
             return z < WALL_STAND_HEIGHT;
         }
     }
     return false;
+}
+
+int map_get_tile(int x, int y) {
+    if (!map_is_inside(x, y)) return ID_WALL;
+    return mget(x, y);
+}
+
+void map_set_tile(int x, int y, int tile_id) {
+    if (map_is_inside(x, y)) {
+        mset(x, y, tile_id);
+    }
 }

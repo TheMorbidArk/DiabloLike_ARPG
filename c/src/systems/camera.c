@@ -4,16 +4,16 @@
 #include "../utils/math_iso.h"
 #include <math.h>
 
-float cam_x = 0, cam_y = 0;
-float cam_speed_x = 0.15f;
-float cam_speed_y = 0.12f;
-
-// 相机漫游状态
-static CameraState camera_state = CAMERA_STATE_TOUR;
-static CameraWaypoint waypoints[4];
-static int current_waypoint = 0;
-static Vec2 tour_pos = {32.0f, 32.0f}; // 当前漫游位置
-static float tour_speed = 0.25f; // 漫游速度
+static Camera main_camera = {
+    .x = 0.0f,
+    .y = 0.0f,
+    .speed_x = 0.15f,
+    .speed_y = 0.12f,
+    .state = CAMERA_STATE_TOUR,
+    .current_waypoint = 0,
+    .tour_pos = {32.0f, 32.0f},
+    .tour_speed = 0.25f
+};
 
 // 简单的平方根近似函数
 static float sqrtf_approx(float x) {
@@ -38,73 +38,73 @@ void camera_tour_init() {
     // 初始化路径点（等轴坐标系边界点）
     // 路径点稍微向内移动，避免相机超出边界
     // (5,5) -> (59,5) -> (59,59) -> (5,59)
-    waypoints[0].world_pos = (Vec2){5.0f, 5.0f};
-    waypoints[0].speed = tour_speed;
+    main_camera.waypoints[0].world_pos = (Vec2){5.0f, 5.0f};
+    main_camera.waypoints[0].speed = main_camera.tour_speed;
 
-    waypoints[1].world_pos = (Vec2){59.0f, 5.0f};
-    waypoints[1].speed = tour_speed;
+    main_camera.waypoints[1].world_pos = (Vec2){59.0f, 5.0f};
+    main_camera.waypoints[1].speed = main_camera.tour_speed;
 
-    waypoints[2].world_pos = (Vec2){50.0f, 45.0f};
-    waypoints[2].speed = tour_speed;
+    main_camera.waypoints[2].world_pos = (Vec2){50.0f, 45.0f};
+    main_camera.waypoints[2].speed = main_camera.tour_speed;
 
-    waypoints[3].world_pos = (Vec2){10.0f, 45.0f};
-    waypoints[3].speed = tour_speed;
+    main_camera.waypoints[3].world_pos = (Vec2){10.0f, 45.0f};
+    main_camera.waypoints[3].speed = main_camera.tour_speed;
 
     // 从第一个点开始
-    current_waypoint = 0;
-    tour_pos = waypoints[0].world_pos;
-    camera_state = CAMERA_STATE_TOUR;
+    main_camera.current_waypoint = 0;
+    main_camera.tour_pos = main_camera.waypoints[0].world_pos;
+    main_camera.state = CAMERA_STATE_TOUR;
 }
 
 void camera_tour_update() {
-    if (current_waypoint >= 4) {
+    if (main_camera.current_waypoint >= 4) {
         // 漫游完成，切换到游戏状态
-        camera_state = CAMERA_STATE_PLAYING;
+        main_camera.state = CAMERA_STATE_PLAYING;
         return;
     }
 
-    Vec2 target = waypoints[current_waypoint].world_pos;
-    float speed = waypoints[current_waypoint].speed;
+    Vec2 target = main_camera.waypoints[main_camera.current_waypoint].world_pos;
+    float speed = main_camera.waypoints[main_camera.current_waypoint].speed;
 
     // 计算方向向量
     Vec2 dir;
-    dir.x = target.x - tour_pos.x;
-    dir.y = target.y - tour_pos.y;
+    dir.x = target.x - main_camera.tour_pos.x;
+    dir.y = target.y - main_camera.tour_pos.y;
     float distance = sqrtf_approx(dir.x * dir.x + dir.y * dir.y);
 
     if (distance < speed) {
         // 到达当前路径点
-        tour_pos = target;
-        current_waypoint++;
+        main_camera.tour_pos = target;
+        main_camera.current_waypoint++;
 
-        if (current_waypoint >= 4) {
+        if (main_camera.current_waypoint >= 4) {
             // 完成所有路径点
-            camera_state = CAMERA_STATE_PLAYING;
+            main_camera.state = CAMERA_STATE_PLAYING;
             return;
         }
     } else {
         // 向目标点移动
         dir.x /= distance;
         dir.y /= distance;
-        tour_pos.x += dir.x * speed;
-        tour_pos.y += dir.y * speed;
+        main_camera.tour_pos.x += dir.x * speed;
+        main_camera.tour_pos.y += dir.y * speed;
     }
 
     // 计算相机位置，使tour_pos位于屏幕中央
     float target_cam_x, target_cam_y;
-    get_camera_pos_for_world(tour_pos.x, tour_pos.y, 0.0f, &target_cam_x, &target_cam_y);
+    get_camera_pos_for_world(main_camera.tour_pos.x, main_camera.tour_pos.y, 0.0f, &target_cam_x, &target_cam_y);
 
     // 直接设置相机位置，避免平滑移动导致的越界问题
-    cam_x = target_cam_x;
-    cam_y = target_cam_y;
+    main_camera.x = target_cam_x;
+    main_camera.y = target_cam_y;
 }
 
 int camera_is_touring() {
-    return camera_state == CAMERA_STATE_TOUR;
+    return main_camera.state == CAMERA_STATE_TOUR;
 }
 
 void camera_update(Entity* player) {
-    if (camera_state == CAMERA_STATE_TOUR) {
+    if (main_camera.state == CAMERA_STATE_TOUR) {
         camera_tour_update();
         return;
     }
@@ -117,6 +117,15 @@ void camera_update(Entity* player) {
     float abs_target_y = target_iso_y - 4.0f;
     float ideal_cam_x = abs_target_x - (WIDTH / 2.0f);
     float ideal_cam_y = abs_target_y - (HEIGHT / 2.0f);
-    cam_x += (ideal_cam_x - cam_x) * cam_speed_x;
-    cam_y += (ideal_cam_y - cam_y) * cam_speed_y;
+    main_camera.x += (ideal_cam_x - main_camera.x) * main_camera.speed_x;
+    main_camera.y += (ideal_cam_y - main_camera.y) * main_camera.speed_y;
+}
+
+Camera* camera_get_main() {
+    return &main_camera;
+}
+
+void camera_get_position(Camera* cam, float* x, float* y) {
+    *x = cam->x;
+    *y = cam->y;
 }
