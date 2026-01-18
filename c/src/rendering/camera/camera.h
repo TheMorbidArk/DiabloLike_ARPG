@@ -2,11 +2,6 @@
 #define CAMERA_H
 #include "../../core/types.h"
 
-typedef enum {
-    CAMERA_STATE_TOUR,
-    CAMERA_STATE_PLAYING
-} CameraState;
-
 typedef struct {
     Vec2 world_pos;
     float speed;
@@ -31,5 +26,9 @@ int camera_is_touring();
 
 Camera* camera_get_main();
 void camera_get_position(Camera* cam, float* x, float* y);
+
+// 上下文保存/恢复
+void camera_save_gameplay(CameraGameplay* state);
+void camera_restore_gameplay(const CameraGameplay* state);
 
 #endif

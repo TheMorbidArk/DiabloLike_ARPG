@@ -11,8 +11,17 @@ static int safe_mget(int x, int y) {
     return mget(x, y);
 }
 
+// 上下文保存/恢复
+void map_save_scene(MapScene* state) {
+    memcpy(state->tiles, MAP, MAP_SIZE * MAP_SIZE);
+}
+
+void map_restore_scene(const MapScene* state) {
+    memcpy(MAP, state->tiles, MAP_SIZE * MAP_SIZE);
+}
+
 void map_init() {
-    memset(MAP, 0, 32768); 
+    memset(MAP, 0, 32768);
 }
 
 void map_generate(unsigned int seed, bool generate_walls) {

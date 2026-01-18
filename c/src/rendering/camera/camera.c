@@ -121,6 +121,19 @@ void camera_update(Entity* player) {
     main_camera.y += (ideal_cam_y - main_camera.y) * main_camera.speed_y;
 }
 
+// 上下文保存/恢复
+void camera_save_gameplay(CameraGameplay* state) {
+    state->x = main_camera.x;
+    state->y = main_camera.y;
+    state->follow_mode = (int)main_camera.state;  // 简化
+}
+
+void camera_restore_gameplay(const CameraGameplay* state) {
+    main_camera.x = state->x;
+    main_camera.y = state->y;
+    main_camera.state = (CameraState)state->follow_mode;
+}
+
 Camera* camera_get_main() {
     return &main_camera;
 }

@@ -2,6 +2,7 @@
 #define SCENE_INTERFACE_H
 
 #include "../../core/config.h"
+#include "../../core/context.h"
 
 // 场景上下文 - 在场景间传递的共享数据
 typedef struct {
@@ -9,6 +10,7 @@ typedef struct {
     int from_scene;
     int battle_result;
     void* scene_data;  // 场景私有数据
+    SceneContextData context_data;  // 完整模块上下文
 } SceneContext;
 
 // 场景生命周期接口

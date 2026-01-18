@@ -5,6 +5,7 @@
 #include "../map/map.h"
 #include "../../core/entity/entity_manager.h"
 #include "../camera/camera.h"
+#include "../../gameplay/scene/scene.h"
 #include <stdio.h>
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
@@ -116,14 +117,15 @@ void render_scene(Entity* player) {
             world_to_screen((float)x, (float)y, 0.0f, &sx, &sy);
 
             // --- 关键修改：区分地板和墙的绘制 ---
-            if (tid == ID_WALL) {
+            if (tid == ID_WALL && scene_get_current() != SCENE_FREE_WALK) {
+                // 仅在非自由行走场景中渲染墙体
                 // 1. 如果是墙，通常需要先在底下垫一个地板，防止墙体透明部分露出黑底
                 // spr(ID_GRASS, sx, sy, &trans, 1, 1, 0, 0, 2, 2);
 
                 // 2. 将墙的渲染位置向上抬起 8 像素（一个高度单位）
                 // 这样它的底部才会正好落在草地的位置上
                 spr(tid, sx, sy - 8, &trans, 1, 1, 0, 0, 2, 2);
-            } else {
+            } else if (tid != ID_WALL) {
                 // 普通地板，直接按原始坐标画
                 spr(tid, sx, sy, &trans, 1, 1, 0, 0, 2, 2);
             }

@@ -1,23 +1,43 @@
 #include "player.h"
 #include "../../tic80.h"
 #include "../../core/config.h"
+#include "../battle/battle.h"
 #include "../../rendering/map/map.h"
+#include "../../core/entity/entity_manager.h"
+#include "../scene/scene.h"
+#include "../../core/context.h"
 #include <math.h>
 #include <stdio.h>
 
 
-Entity player = {{0.0f, 0.0f}, 0.0f, 1};
+Player player = {{0.0f, 0.0f}, 0.0f, 0.15f, 0, 100.0f, 100.0f};
+
+// 上下文保存/恢复
+void player_save_movement(PlayerMovement* state) {
+    state->gameplay.core.id = player.id;
+    state->gameplay.core.health = player.health;
+    state->gameplay.hp = player.hp;
+    state->pos = player.pos;
+    state->speed = player.speed;
+}
+
+void player_restore_movement(const PlayerMovement* state) {
+    player.id = state->gameplay.core.id;
+    player.health = state->gameplay.core.health;
+    player.hp = state->gameplay.hp;
+    player.pos = state->pos;
+    player.speed = state->speed;
+    // 同步实体管理器
+    EntityID player_id = entity_get_player();
+    entity_set_position(player_id, player.pos.x, player.pos.y, player.z);
+}
 
 void player_update() {
     Vec2 input = {0, 0};
     if (btn(0)) input.y -= 1; if (btn(1)) input.y += 1;
     if (btn(2)) input.x -= 1; if (btn(3)) input.x += 1;
 
-    // 调试：按 X 键 (btn 6) 重新生成地图
-    if (btnp(6,60,6)) {
-        map_generate((unsigned int)tstamp(), true);
-        // 实体位置同步已由主循环处理
-    }
+
 
     // 调试：按 A 键 (btn 5) 输出当前坐标
     // if (btnp(5,30,30)) {

@@ -42,20 +42,7 @@ WASM_EXPORT("TIC")
 void TIC() {
     // 场景更新
     scene_update();
-    
+
     // 场景渲染
     scene_render();
-    
-    // 如果在探索场景，渲染探索界面
-    if (scene_get_current() == SCENE_EXPLORATION) {
-        // 只有在相机漫游结束后才允许玩家操作
-        if (!camera_is_touring()) {
-            player_update();
-            // 更新实体管理器中的玩家位置
-            EntityID player_id = entity_get_player();
-            entity_set_position(player_id, player.pos.x, player.pos.y, player.z);
-        }
-        camera_update(&player);
-        render_scene(&player);
-    }
 }

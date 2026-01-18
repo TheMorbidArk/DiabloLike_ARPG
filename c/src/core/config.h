@@ -18,7 +18,8 @@ typedef enum {
     SCENE_EXPLORATION,
     SCENE_BATTLE,
     SCENE_DIALOG,
-    SCENE_MENU
+    SCENE_MENU,
+    SCENE_FREE_WALK
 } GameScene;
 
 // Battle States

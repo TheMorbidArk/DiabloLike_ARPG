@@ -1,6 +1,7 @@
 #include "scene_registry.h"
 #include "scenes/exploration/exploration_scene.h"
 #include "scenes/battle/battle_scene.h"
+#include "scenes/free_walk/free_walk_scene.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -52,6 +53,13 @@ void scene_registry_auto_register(void) {
         SCENE_BATTLE,
         battle_scene_get_vtable(),
         "Battle"
+    );
+
+    // 注册自由行走场景
+    scene_registry_register(
+        SCENE_FREE_WALK,
+        free_walk_scene_get_vtable(),
+        "Free Walk"
     );
 
     // 将来可以在这里添加更多场景：

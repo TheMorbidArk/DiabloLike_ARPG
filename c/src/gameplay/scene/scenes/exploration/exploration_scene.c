@@ -5,9 +5,15 @@
 #include "../../../../gameplay/battle/battle.h"
 #include "../../../../core/entity/entity_manager.h"
 #include "../../../../gameplay/player/player.h"
+#include "../../../../rendering/camera/camera.h"
+#include "../../../../rendering/renderer/renderer.h"
+#include "../../../../rendering/map/map.h"
+#include "../../../../rendering/map/free_walk_map.h"
 #include "../../../../tic80.h"
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,11 +42,33 @@ void exploration_scene_enter(SceneContext* ctx) {
         exploration_data.battle_cooldown = 0;
     }
 
+    // 生成探索地图（迷宫），如果上下文为空
+    if (ctx->context_data.map.tiles[0] == 0) {  // 检查是否已初始化
+        map_generate(12345, true);  // 固定种子生成迷宫
+        map_save_scene(&ctx->context_data.map);  // 保存到上下文
+    }
+
     // 可以在这里处理战斗结果
     // 例如：根据战斗结果给予奖励、改变游戏状态等
 }
 
 void exploration_scene_update(SceneContext* ctx) {
+    // 检查切换到自由行走场景（按 A 键 btn 6）
+    if (btnp(6,60,6)) {
+        trace("Attempting to switch to Free Walk scene", COLOR_CYAN);
+        scene_switch(SCENE_FREE_WALK);
+        trace("Switched to Free Walk scene", COLOR_YELLOW);
+        return; // 避免在切换帧执行其他逻辑
+    }
+
+    // 更新玩家输入和移动
+    if (!camera_is_touring()) {
+        player_update();
+        // 更新实体管理器中的玩家位置
+        EntityID player_id = entity_get_player();
+        entity_set_position(player_id, player.pos.x, player.pos.y, player.z);
+    }
+
     // 更新战斗冷却
     if (exploration_data.battle_cooldown > 0) {
         exploration_data.battle_cooldown--;
@@ -64,7 +92,10 @@ void exploration_scene_update(SceneContext* ctx) {
 
 void exploration_scene_render(SceneContext* ctx) {
     (void)ctx; // 参数暂时未使用，保留接口一致性
-    // 探索场景的渲染在renderer.c中处理，这里不需要额外渲染
+    // 更新相机
+    camera_update(&player);
+    // 渲染场景
+    render_scene(&player);
 }
 
 void exploration_scene_exit(SceneContext* ctx) {
@@ -72,6 +103,8 @@ void exploration_scene_exit(SceneContext* ctx) {
     // 这样其他场景（如战斗场景）可以知道玩家位置
     EntityID player_id = entity_get_player();
     entity_get_position(player_id, &ctx->player_x, &ctx->player_y, (float*)NULL);
+
+    // 上下文已在scene_manager中保存，无需额外操作
 
     // 退出探索场景时的清理
 }
