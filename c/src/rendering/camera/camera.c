@@ -1,7 +1,7 @@
 #include "camera.h"
-#include "../tic80.h"
-#include "../config.h"
-#include "../utils/math_iso.h"
+#include "../../tic80.h"
+#include "../../core/config.h"
+#include "../../utils/math_iso.h"
 #include <math.h>
 
 static Camera main_camera = {

@@ -1,10 +1,9 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "../config.h"
-#include "../entities/player.h"
-#include "../entities_system/game_entities.h"
-#include "battle.h"
+#include "../../core/config.h"
+#include "../player/player.h"
+#include "../battle/battle.h"
 
 // 场景数据结构 - 用于场景间传递数据
 typedef struct {

@@ -1,5 +1,5 @@
 #include "battle.h"
-#include "../tic80.h"
+#include "../../tic80.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

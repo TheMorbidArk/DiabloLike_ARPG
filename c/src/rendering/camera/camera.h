@@ -1,6 +1,6 @@
 #ifndef CAMERA_H
 #define CAMERA_H
-#include "../types.h"
+#include "../../core/types.h"
 
 typedef enum {
     CAMERA_STATE_TOUR,

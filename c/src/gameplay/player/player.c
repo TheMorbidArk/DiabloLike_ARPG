@@ -1,8 +1,7 @@
 #include "player.h"
-#include "../tic80.h"
-#include "../config.h"
-#include "../systems/map.h"
-#include "../entities_system/game_entities.h"
+#include "../../tic80.h"
+#include "../../core/config.h"
+#include "../../rendering/map/map.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -17,8 +16,7 @@ void player_update() {
     // 调试：按 X 键 (btn 6) 重新生成地图
     if (btnp(6,60,6)) {
         map_generate((unsigned int)tstamp(), true);
-        // 同步所有实体位置
-        game_entities_sync_all();
+        // 实体位置同步已由主循环处理
     }
 
     // 调试：按 A 键 (btn 5) 输出当前坐标

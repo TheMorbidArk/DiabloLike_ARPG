@@ -1,6 +1,6 @@
 #include "assets.h"
-#include "../tic80.h"
-#include "../config.h"
+#include "../../tic80.h"
+#include "../../core/config.h"
 #include <stdlib.h>
 
 static void set_raw_pixel(int tile_id, int x, int y, int color) {

@@ -1,13 +1,13 @@
 #include "tic80.h"
-#include "config.h"
-#include "systems/assets.h"
-#include "systems/map.h"
-#include "systems/camera.h"
-#include "systems/renderer.h"
-#include "entities/player.h"
-#include "entities/entity_manager.h"
-#include "systems/scene.h"
-#include "systems/battle.h"
+#include "core/config.h"
+#include "rendering/assets/assets.h"
+#include "rendering/map/map.h"
+#include "rendering/camera/camera.h"
+#include "rendering/renderer/renderer.h"
+#include "gameplay/player/player.h"
+#include "core/entity/entity_manager.h"
+#include "gameplay/scene/scene.h"
+#include "gameplay/battle/battle.h"
 
 WASM_EXPORT("BOOT")
 void BOOT() {

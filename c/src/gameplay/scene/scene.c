@@ -1,8 +1,9 @@
 #include "scene.h"
-#include "battle.h"
-#include "../config.h"
-#include "../tic80.h"
-#include "../entities/entity_manager.h"
+#include "../battle/battle.h"
+#include "../player/player.h"
+#include "../../core/config.h"
+#include "../../tic80.h"
+#include "../../core/entity/entity_manager.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

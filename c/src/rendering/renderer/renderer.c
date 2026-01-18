@@ -1,10 +1,10 @@
 #include "renderer.h"
-#include "../tic80.h"
-#include "../config.h"
-#include "../utils/math_iso.h"
-#include "../systems/map.h"
-#include "../entities/entity_manager.h"
-#include "../systems/camera.h"
+#include "../../tic80.h"
+#include "../../core/config.h"
+#include "../../utils/math_iso.h"
+#include "../map/map.h"
+#include "../../core/entity/entity_manager.h"
+#include "../camera/camera.h"
 #include <stdio.h>
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))

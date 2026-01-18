@@ -1,7 +1,7 @@
 #ifndef BATTLE_H
 #define BATTLE_H
 
-#include "../config.h"
+#include "../../core/config.h"
 
 // 战斗单位结构
 typedef struct {

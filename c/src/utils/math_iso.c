@@ -1,7 +1,7 @@
 #include "math_iso.h"
-#include "../config.h"
+#include "../core/config.h"
 #include "../tic80.h"
-#include "../systems/camera.h"
+#include "../rendering/camera/camera.h"
 
 void world_to_screen(float wx, float wy, float wz, int* sx, int* sy) {
     Camera* cam = camera_get_main();
