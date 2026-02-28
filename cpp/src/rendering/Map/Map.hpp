@@ -3,7 +3,6 @@
 #include "core/Config.hpp"
 #include "core/Types.hpp"
 #include "core/Entity/EntityManager.hpp"
-#include <array>
 #include <cstdlib>
 #include <cstring>
 
@@ -20,7 +19,7 @@ public:
     Map& operator=(const Map&) = delete;
 
     void init() {
-        m_tiles.fill(0);
+        std::memset(m_tiles, 0, sizeof(m_tiles));
     }
 
     void generate(uint32_t seed, bool generateWalls) {
@@ -33,10 +32,10 @@ public:
             return;
         }
 
-        std::array<uint8_t, core::MAP_SIZE * core::MAP_SIZE> tempMap{};
-        std::array<uint8_t, core::MAP_SIZE * core::MAP_SIZE> visited{};
-        std::array<int, core::MAP_SIZE * core::MAP_SIZE> qx{};
-        std::array<int, core::MAP_SIZE * core::MAP_SIZE> qy{};
+        static uint8_t tempMap[core::MAP_SIZE * core::MAP_SIZE];
+        static uint8_t visited[core::MAP_SIZE * core::MAP_SIZE];
+        static int qx[core::MAP_SIZE * core::MAP_SIZE];
+        static int qy[core::MAP_SIZE * core::MAP_SIZE];
 
         std::srand(seed);
 
@@ -61,24 +60,26 @@ public:
                             }
                         }
                     }
+                    const size_t idx = static_cast<size_t>(y) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(x);
                     if (walls >= 5) {
-                        tempMap[static_cast<size_t>(y) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(x)] = core::ID_WALL;
+                        tempMap[idx] = core::ID_WALL;
                     } else {
-                        tempMap[static_cast<size_t>(y) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(x)] = core::ID_GRASS;
+                        tempMap[idx] = core::ID_GRASS;
                     }
                 }
             }
-        for (int y = 1; y < core::MAP_SIZE - 1; ++y) {
-            for (int x = 1; x < core::MAP_SIZE - 1; ++x) {
-                setTile(x, y, tempMap[static_cast<size_t>(y) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(x)]);
+            for (int y = 1; y < core::MAP_SIZE - 1; ++y) {
+                for (int x = 1; x < core::MAP_SIZE - 1; ++x) {
+                    const size_t idx = static_cast<size_t>(y) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(x);
+                    setTile(x, y, tempMap[idx]);
+                }
             }
         }
-        }
 
-        visited.fill(0);
+        std::memset(visited, 0, sizeof(visited));
 
-        size_t head = 0;
-        size_t tail = 0;
+        int head = 0;
+        int tail = 0;
 
         auto entities = core::EntityManager::get().getArray();
         const auto count = core::EntityManager::get().getCount();
@@ -94,11 +95,12 @@ public:
                     if (tx >= 0 && tx < core::MAP_SIZE && ty >= 0 && ty < core::MAP_SIZE) {
                         setTile(tx, ty, core::ID_GRASS);
 
-                        if (visited[static_cast<size_t>(ty) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(tx)] == 0) {
+                        const size_t vidx = static_cast<size_t>(ty) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(tx);
+                        if (visited[vidx] == 0) {
                             qx[tail] = tx;
                             qy[tail] = ty;
                             tail++;
-                            visited[static_cast<size_t>(ty) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(tx)] = 1;
+                            visited[vidx] = 1;
                         }
                     }
                 }
@@ -117,9 +119,9 @@ public:
                 int nx = cx + dxx[i];
                 int ny = cy + dyy[i];
                 if (nx > 0 && nx < core::MAP_SIZE - 1 && ny > 0 && ny < core::MAP_SIZE - 1) {
-                    if (visited[static_cast<size_t>(ny) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(nx)] == 0 && 
-                        getTile(nx, ny) == core::ID_GRASS) {
-                        visited[static_cast<size_t>(ny) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(nx)] = 1;
+                    const size_t vidx = static_cast<size_t>(ny) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(nx);
+                    if (visited[vidx] == 0 && getTile(nx, ny) == core::ID_GRASS) {
+                        visited[vidx] = 1;
                         qx[tail] = nx;
                         qy[tail] = ny;
                         tail++;
@@ -130,9 +132,11 @@ public:
 
         for (int y = 0; y < core::MAP_SIZE; ++y) {
             for (int x = 0; x < core::MAP_SIZE; ++x) {
-                if (getTile(x, y) == core::ID_GRASS && 
-                    visited[static_cast<size_t>(y) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(x)] == 0) {
-                    setTile(x, y, core::ID_WALL);
+                if (getTile(x, y) == core::ID_GRASS) {
+                    const size_t vidx = static_cast<size_t>(y) * static_cast<size_t>(core::MAP_SIZE) + static_cast<size_t>(x);
+                    if (visited[vidx] == 0) {
+                        setTile(x, y, core::ID_WALL);
+                    }
                 }
             }
         }
@@ -162,7 +166,7 @@ private:
         return getTile(x, y);
     }
 
-    std::array<uint8_t, core::MAP_SIZE * core::MAP_SIZE> m_tiles{};
+    uint8_t m_tiles[core::MAP_SIZE * core::MAP_SIZE];
 };
 
 inline uint8_t mapGetTile(int x, int y) {

@@ -331,6 +331,36 @@ private:
 };
 ```
 
+### 禁止使用 C++ STL
+
+**禁止使用以下 C++ 标准库组件**（WASM 嵌入式环境限制）：
+- ❌ `std::vector`、`std::list`、`std::map`、`std::set` 等容器
+- ❌ `std::string`、`std::string_view`
+- ❌ `std::unique_ptr`、`std::shared_ptr`
+- ❌ `std::function`
+- ❌ `std::iostream`
+
+**允许使用**：
+- ✅ `std::array<T, N>` - 固定大小数组（栈上或静态）
+- ✅ `std::span<T>` - 只读数组视图（轻量）
+- ✅ `std::optional<T>` - 可选值
+- ✅ `std::variant<T1, T2, ...>` - 类型联合
+- ✅ C 标准库 (`<cstdlib>`, `<cstring>`, `<cmath>` 等)
+
+**Map 生成算法示例**（使用静态数组替代 std::array）：
+
+```cpp
+// 错误 - 使用动态内存
+void generate() {
+    std::vector<uint8_t> temp(100);  // 禁止
+}
+
+// 正确 - 使用静态数组
+void generate() {
+    static uint8_t temp[100];  // 允许
+}
+```
+
 ### 头文件规范
 
 ```cpp
