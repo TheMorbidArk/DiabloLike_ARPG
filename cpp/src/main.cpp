@@ -43,6 +43,12 @@ void BOOT() {
     }
     
     rendering::Camera::get().init(0.0f, 0.0f);
+    
+    auto playerDataForCamera = core::EntityManager::get().getPlayer();
+    if (playerDataForCamera.has_value()) {
+        const auto& pos = playerDataForCamera->get().entity.pos;
+        rendering::Camera::get().syncToEntity(pos.x, pos.y, pos.z);
+    }
 }
 
 WASM_EXPORT("TIC")

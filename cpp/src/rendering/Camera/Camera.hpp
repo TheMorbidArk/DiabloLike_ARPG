@@ -33,6 +33,15 @@ public:
         m_y = y;
     }
 
+    void syncToEntity(float worldX, float worldY, float worldZ) {
+        const float isoX = (worldX - worldY) * (utils::ISO_W / 2.0f);
+        const float isoY = (worldX + worldY) * (utils::ISO_H / 2.0f) - (worldZ * 16.0f);
+        const float absX = isoX - 8.0f;
+        const float absY = isoY - 4.0f;
+        m_x = absX - (core::WIDTH / 2.0f);
+        m_y = absY - (core::HEIGHT / 2.0f);
+    }
+
     void getPosition(float* x, float* y) const {
         *x = m_x;
         *y = m_y;
