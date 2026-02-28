@@ -91,7 +91,7 @@ public:
         const auto playerID = core::Context::get().getPlayerID();
         core::EntityManager::get().getPosition(playerID, &playerX, &playerY, &playerZ);
 
-        const auto& entity = entities[entityIndex];
+        const auto& entity = entities[static_cast<size_t>(entityIndex)];
         const float entityX = entity.entity.pos.x;
         const float entityY = entity.entity.pos.y;
 

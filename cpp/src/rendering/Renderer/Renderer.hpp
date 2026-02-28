@@ -68,7 +68,7 @@ public:
         renderMinimap(player);
     }
 
-    void renderMinimap(const core::Entity* player) {
+    void renderMinimap([[maybe_unused]] const core::Entity* player) {
         constexpr int kMMW = 64;
         constexpr int kMMH = 32;
         const int offsetX = core::WIDTH - kMMW - 8;

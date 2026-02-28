@@ -49,6 +49,9 @@ make
 
 # 构建 WASM (Release)
 make build TYPE=Release
+
+# 清理构建
+make clean
 ```
 
 ### 单独运行测试
@@ -56,6 +59,105 @@ make build TYPE=Release
 本项目没有独立的单元测试框架。测试通过以下方式进行：
 - 运行 `buildwasm.sh` 或 `buildcart.sh` 查看运行时行为
 - 在 TIC-80 模拟器中加载 `wasmdemo.wasmp` 并导入 `cart.wasm` 进行交互测试
+- 修改代码后重新编译并运行，观察运行时效果
+
+### Lint/类型检查
+
+项目使用 CMake 编译，默认启用严格编译选项：
+- `-Wall -Wextra` - 启用所有常见警告
+- `-Wconversion -Wsign-conversion` - 类型转换警告
+- 编译输出中的 warning 即为 lint 检查结果
+
+---
+
+## C 版本与 C++ 版本的核心差异
+
+### 内存管理模型
+
+**C 版本 - 直接操作 TIC-80 内存**
+```c
+// tic80.c 中定义内存指针，直接映射 TIC-80 虚拟内存地址
+VRAM* FRAMEBUFFER = (VRAM*)0;
+uint8_t* TILES = (uint8_t*)0x04000;
+uint8_t* SPRITES = (uint8_t*)0x06000;
+uint8_t* MAP = (uint8_t*)0x08000;
+```
+- 使用 `map_get_tile()` / `map_set_tile()` 直接读写 TIC-80 的 MAP 内存区域
+- 渲染时直接操作 FRAMEBUFFER 或调用 TIC-80 API
+
+**C++ 版本 - 内部数组 + TIC-80 API**
+```cpp
+// cpp/src/rendering/Map/Map.hpp
+std::array<uint8_t, core::MAP_SIZE * core::MAP_SIZE> m_tiles{};
+```
+- 使用 `std::array` 内部数组存储地图数据，与 TIC-80 内存隔离
+- 通过 `tic80::spr()`、`tic80::cls()` 等 API 函数间接渲染
+- 需要调用 `sync()` 函数将数据同步到 TIC-80 内存（如果需要）
+
+### 渲染流程对比
+
+| 特性 | C 版本 | C++ 版本 |
+|------|--------|----------|
+| 地图存储 | TIC-80 MAP 内存 (0x08000) | 内部 `std::array` |
+| 精灵/瓦片 | **运行时写入 TILES 内存** | 内部数组（未实现） |
+| 屏幕绘制 | FRAMEBUFFER + TIC80 API | 仅调用 TIC80 API |
+| 数据同步 | 天然同步 | 需手动 sync() |
+
+### 精灵/瓦片运行时生成 (C 版本)
+
+C 版本通过 `assets_init()` 直接操作 TIC-80 内存生成精灵：
+
+```c
+// assets.c - 直接写入 TILES 内存
+uint8_t* ptr = TILES + addr;  // TILES = (uint8_t*)0x04000
+*ptr = (*ptr & 0xF0) | (uint8_t)(color & 0x0F);
+```
+
+每个 8x8 瓦片占用 32 字节，复合精灵(16x16)由多个瓦片组成。
+
+**C++ 版本当前缺失**：需要实现类似逻辑，通过 `tic80::poke()` 或直接内存写入生成精灵。
+
+### TIC-80 API 完整性对比
+
+**C 版本 - 完整实现** (`c/src/tic80.h/c`)
+- 完整的常量定义：TILE_SIZE, WIDTH, HEIGHT, WIDTH_TILES, HEIGHT_TILES, BPP
+- 完整的枚举定义：KEYCODES, BUTTON_CODES
+- 完整的结构体：VRAM, Mouse
+- 完整的内存指针声明：FRAMEBUFFER, TILES, SPRITES, MAP, GAMEPADS 等
+- 完整的内存大小常量：TILES_SIZE, SPRITES_SIZE 等
+- 完整的 API 函数声明（通过 WASM_IMPORT 导入）
+
+**C++ 版本 - 不完整** (`cpp/src/tic80/Tic80.hpp`)
+- 仅有 extern "C" 块的 API 声明
+- namespace tic80 中的 wrapper 实现不完整，缺失：
+  - `circ`, `circb`, `clip`, `elli`, `ellib`, `font`, `tri`, `trib`, `ttri`
+  - `key`, `keyp`, `mouse`
+  - `music`, `sfx`
+  - `pmem`, `peek1/2/4`, `poke1/2/4`, `sync`, `vbank`
+  - `fget`, `fset`, `tstamp`
+- 缺失常量、枚举、结构体定义（应从 Config.hpp 获取或自行定义）
+- 缺失内存指针声明（如需直接操作内存）
+
+### 项目结构差异
+
+**C 版本 - 函数式/过程式**
+```
+c/src/
+├── main.c                      # 入口 (BOOT/TIC)
+├── tic80.h/.c                 # TIC-80 内存映射
+├── gameplay/scene/scene.c     # 场景系统 (scene_update/render 在这里)
+├── rendering/map/map.c        # 地图操作
+```
+
+**C++ 版本 - 面向对象**
+```
+cpp/src/
+├── main.cpp                    # 入口 + scene 函数 (extern "C")
+├── gameplay/Scene/SceneManager.hpp  # 面向对象场景管理
+├── rendering/Map/Map.hpp       # 单例 Map 类，内部数组
+```
+
+---
 
 ## 代码风格指南 (C 版本)
 
@@ -64,7 +166,7 @@ make build TYPE=Release
 ```
 c/src/
 ├── main.c                 # 入口点 (BOOT/TIC 函数)
-├── tic80.h/.c            # TIC-80 API 绑定
+├── tic80.h/.c            # TIC-80 API 绑定 + 内存指针
 ├── core/                 # 核心系统
 │   ├── config.h          # 配置常量
 │   ├── types.h           # 类型定义
@@ -73,7 +175,7 @@ c/src/
 ├── rendering/            # 渲染系统
 │   ├── assets/           # 资源加载
 │   ├── camera/           # 相机系统
-│   ├── map/              # 地图系统
+│   ├── map/              # 地图系统 (直接操作 MAP 内存)
 │   └── renderer/         # 主渲染器
 ├── gameplay/            # 游戏逻辑
 │   ├── player/           # 玩家系统
@@ -152,6 +254,8 @@ CMake 中启用的严格编译选项：
 - 入口点：`BOOT()`（初始化）和 `TIC()`（每帧更新）
 - 导出函数必须使用 C 调用约定
 
+---
+
 ## C++20 移植版本指南 (cpp/)
 
 ### 项目结构
@@ -160,23 +264,24 @@ CMake 中启用的严格编译选项：
 cpp/
 ├── CMakeLists.txt
 ├── src/
-│   ├── main.cpp
+│   ├── main.cpp               # 入口 + scene 函数 (extern "C")
 │   ├── tic80/
-│   │   └── Tic80.hpp         # TIC-80 API 绑定
+│   │   └── Tic80.hpp          # TIC-80 API 绑定 (wrapper)
 │   ├── core/
-│   │   ├── Config.hpp        # 配置常量
-│   │   ├── Types.hpp         # 类型定义 + concepts
-│   │   ├── Context.hpp       # 单例上下文
+│   │   ├── Config.hpp         # 配置常量
+│   │   ├── Types.hpp          # 类型定义 + concepts
+│   │   ├── Context.hpp        # 单例上下文
 │   │   └── Entity/
 │   │       └── EntityManager.hpp
 │   ├── rendering/
 │   │   ├── Assets/
 │   │   ├── Camera/
-│   │   ├── Map/
-│   │   └── Renderer/
+│   │   ├── Map/               # 内部 std::array 存储
+│   │   └── Renderer/          # 调用 tic80:: API
 │   ├── gameplay/
 │   │   ├── Player/
 │   │   ├── Scene/
+│   │   │   └── SceneManager.hpp  # 场景管理器
 │   │   └── Battle/
 │   └── utils/
 │       └── MathIso.hpp
@@ -262,14 +367,40 @@ void TIC() {
 }
 ```
 
-## 常用命令速查
+---
 
-| 操作 | C 命令 | C++ 命令 |
-|------|--------|----------|
-| 构建 Debug | `cd c && make` | `cd cpp && make` |
-| 构建 Release | `cd c && make build TYPE=Release` | `cd cpp && make build TYPE=Release` |
-| 清理 | `cd c && make clean` | `cd cpp && make clean` |
-| 构建并运行 | `./c/buildwasm.sh` | - |
+## 关键设计说明
+
+### 为什么 scene_init/scene_update 在 main.cpp 中
+
+C++ 版本的 `main.cpp` 中定义了这些函数：
+
+```cpp
+extern "C" {
+    void scene_init();
+    void scene_update();
+    void scene_render();
+}
+```
+
+这是因为：
+1. WASM 导出需要 `extern "C"` 来避免 name mangling
+2. 将这些函数放在 main.cpp 可以被 TIC() 函数直接调用
+3. 实际的场景逻辑封装在 `SceneManager` 类中
+
+### 内存操作注意事项
+
+**如果需要在 C++ 版本中使用 TIC-80 内存**：
+- 使用 `tic80::peek()` / `tic80::poke()` 函数
+- 或直接定义指针（需包含 `<cstdint>`）
+- 使用 `tic80::sync()` 同步数据到 cartridge
+
+**C++ 版本的推荐做法**：
+- 保持内部数据结构（`std::array`）与 TIC-80 内存隔离
+- 仅在需要时通过 `sync()` 同步
+- 使用 `tic80::map()` 渲染时，会自动读取 TIC-80 MAP 内存
+
+---
 
 ## 开发提示
 
@@ -278,3 +409,14 @@ void TIC() {
 3. 地图坐标系统：96x96 网格
 4. 等距投影：使用 `world_to_screen()` 和 `screen_to_world()` 转换坐标
 5. 实体通过 `entity_add()` 添加，使用 `entity_manager` 管理系统
+
+---
+
+## 常用命令速查
+
+| 操作 | C 命令 | C++ 命令 |
+|------|--------|----------|
+| 构建 Debug | `cd c && make` | `cd cpp && make` |
+| 构建 Release | `cd c && make build TYPE=Release` | `cd cpp && make build TYPE=Release` |
+| 清理 | `cd c && make clean` | `cd cpp && make clean` |
+| 构建并运行 | `./c/buildwasm.sh` | - |
