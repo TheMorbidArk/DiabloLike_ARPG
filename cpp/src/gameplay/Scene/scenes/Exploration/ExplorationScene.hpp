@@ -28,7 +28,7 @@ public:
         }
 
         if (ctx->contextData.tiles[0] == 0) {
-            rendering::Map::get().generate(12345, true);
+            rendering::Map::get().generate(777, true);
         }
     }
 
