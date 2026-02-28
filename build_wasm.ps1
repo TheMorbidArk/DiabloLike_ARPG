@@ -1,5 +1,5 @@
 # --- 配置区域 ---
-$PROJECT_NAME = "c"                       # 你的 C 代码所在的文件夹名称
+$PROJECT_NAME = "c"                       # 你的 C 代码所在的文件夹名称 (c 或 cpp)
 $TIC80_EXE = ".\tic80\tic80.exe"          # TIC-80 路径
 $DOCKER_IMAGE = "tic80-pro-builder"
 # 确保路径指向包含 CMakeLists.txt 的文件夹
@@ -10,6 +10,7 @@ $debugMode = $false
 $releaseMode = $false
 $packageMode = $false
 $makeMode = $false
+$cppMode = $false
 
 if ($args.Count -gt 0) {
     foreach ($arg in $args) {
@@ -18,9 +19,10 @@ if ($args.Count -gt 0) {
             "debug" { $debugMode = $true }
             "release" { $releaseMode = $true }
             "package" { $packageMode = $true }
+            "cpp" { $cppMode = $true }
             default {
                 Write-Host "Error: Unknown argument '$arg'" -ForegroundColor Red
-                Write-Host "Valid arguments: debug, release, package" -ForegroundColor Yellow
+                Write-Host "Valid arguments: debug, release, package, cpp" -ForegroundColor Yellow
                 exit 1
             }
         }
@@ -30,6 +32,13 @@ if ($args.Count -gt 0) {
 # 如果没有指定参数，默认使用 release 模式
 if (-not $debugMode -and -not $releaseMode -and -not $packageMode -and -not $makeMode) {
     $releaseMode = $true
+}
+
+# 如果指定了 cpp 参数，切换到 cpp 目录
+if ($cppMode) {
+    $PROJECT_NAME = "cpp"
+    $WASM_PROJECT_PATH = Join-Path $PSScriptRoot $PROJECT_NAME
+    Write-Host "Using C++ project (cpp/)" -ForegroundColor Cyan
 }
 
 # --- 辅助函数 ---
