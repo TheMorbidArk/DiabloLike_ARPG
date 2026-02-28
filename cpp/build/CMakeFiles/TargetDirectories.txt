@@ -1,3 +1,0 @@
-/project/build/CMakeFiles/cart.wasm.dir
-/project/build/CMakeFiles/edit_cache.dir
-/project/build/CMakeFiles/rebuild_cache.dir
