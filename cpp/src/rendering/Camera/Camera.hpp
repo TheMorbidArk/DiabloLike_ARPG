@@ -1,10 +1,11 @@
 #pragma once
 
-#include "../../core/Types.hpp"
-#include "../../core/Config.hpp"
-#include "../../core/Context.hpp"
-#include "../../core/Entity/EntityManager.hpp"
-#include "../../utils/MathIso.hpp"
+#include "core/Types.hpp"
+#include "core/Config.hpp"
+#include "core/Context.hpp"
+#include "core/Entity/EntityManager.hpp"
+#include "utils/MathIso.hpp"
+#include <array>
 
 namespace rendering {
 

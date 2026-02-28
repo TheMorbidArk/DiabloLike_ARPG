@@ -1,4 +1,3 @@
-#include "tic80/Tic80.hpp"
 #include "core/Config.hpp"
 #include "core/Types.hpp"
 #include "core/Context.hpp"
@@ -11,6 +10,7 @@
 #include "gameplay/Battle/Battle.hpp"
 #include "gameplay/Scene/SceneManager.hpp"
 #include "gameplay/Scene/CollisionSystem.hpp"
+#include "tic80/Tic80.hpp"
 
 extern "C" {
 

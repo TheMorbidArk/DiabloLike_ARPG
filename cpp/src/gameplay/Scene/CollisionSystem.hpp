@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../../core/Types.hpp"
-#include "../../core/Config.hpp"
-#include "../../core/Entity/EntityManager.hpp"
-#include "../../tic80/Tic80.hpp"
+#include "core/Types.hpp"
+#include "core/Config.hpp"
+#include "core/Entity/EntityManager.hpp"
 #include <cmath>
+#include "tic80/Tic80.hpp"
 
 namespace gameplay {
 

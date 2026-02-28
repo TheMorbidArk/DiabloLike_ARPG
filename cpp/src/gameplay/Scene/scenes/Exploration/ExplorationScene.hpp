@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../../../Scene/SceneInterface.hpp"
-#include "../../Battle/Battle.hpp"
-#include "../../Player/Player.hpp"
-#include "../../../rendering/Renderer/Renderer.hpp"
-#include "../../../rendering/Camera/Camera.hpp"
-#include "../../../rendering/Map/Map.hpp"
-#include "../../../core/Entity/EntityManager.hpp"
+#include "gameplay/Scene/SceneInterface.hpp"
+#include "gameplay/Battle/Battle.hpp"
+#include "gameplay/Player/Player.hpp"
+#include "rendering/Renderer/Renderer.hpp"
+#include "rendering/Camera/Camera.hpp"
+#include "rendering/Map/Map.hpp"
+#include "core/Entity/EntityManager.hpp"
 
 namespace gameplay {
 

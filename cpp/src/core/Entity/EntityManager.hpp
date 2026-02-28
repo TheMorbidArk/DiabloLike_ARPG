@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Types.hpp"
-#include "../Config.hpp"
+#include "core/Types.hpp"
+#include "core/Config.hpp"
 #include <array>
 #include <span>
 #include <optional>

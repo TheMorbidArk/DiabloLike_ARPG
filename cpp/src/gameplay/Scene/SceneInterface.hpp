@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../core/Config.hpp"
-#include "../../core/Types.hpp"
-#include "../../core/Context.hpp"
+#include "core/Config.hpp"
+#include "core/Types.hpp"
+#include "core/Context.hpp"
 #include <cstddef>
 #include <cstdint>
 

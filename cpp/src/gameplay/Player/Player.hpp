@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../core/Types.hpp"
-#include "../../core/Config.hpp"
+#include "core/Types.hpp"
+#include "core/Config.hpp"
 
 namespace gameplay {
 

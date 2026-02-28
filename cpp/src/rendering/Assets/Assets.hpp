@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../core/Config.hpp"
-#include "../../tic80/Tic80.hpp"
+#include "core/Config.hpp"
+#include "tic80/Tic80.hpp"
 #include <array>
 #include <cmath>
 

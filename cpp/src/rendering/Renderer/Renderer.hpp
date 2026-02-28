@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../../core/Types.hpp"
-#include "../../core/Config.hpp"
-#include "../../core/Entity/EntityManager.hpp"
-#include "../../utils/MathIso.hpp"
-#include "../../tic80/Tic80.hpp"
-#include "../Camera/Camera.hpp"
-#include "../Map/Map.hpp"
+#include "core/Types.hpp"
+#include "core/Config.hpp"
+#include "core/Entity/EntityManager.hpp"
+#include "utils/MathIso.hpp"
+#include "rendering/Camera/Camera.hpp"
+#include "rendering/Map/Map.hpp"
+#include "tic80/Tic80.hpp"
 
 namespace rendering {
 
